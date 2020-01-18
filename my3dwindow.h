@@ -30,7 +30,8 @@ private:
     void createFramegraph();
     void setGuiCameraProjection();
     void setMainCameraProjection(int width, int height);
-    void Test();
+    void Test1();
+    void Test2();
 
     EntityText* testtext;
     Qt3DCore::QEntity *m_Scene;
