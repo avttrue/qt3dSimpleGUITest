@@ -8,17 +8,17 @@ int main(int argc, char *argv[])
 {
     QGuiApplication application(argc, argv);
 
-    QSurfaceFormat fmt;
-    fmt.setDepthBufferSize(24);
+    QSurfaceFormat surfaceFormat;
+    surfaceFormat.setDepthBufferSize(24);
     if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL)
     {
-        fmt.setVersion(3, 2);
-        fmt.setProfile(QSurfaceFormat::CoreProfile);
+        surfaceFormat.setVersion(3, 2);
+        surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
     }
-    QSurfaceFormat::setDefaultFormat(fmt);
+    QSurfaceFormat::setDefaultFormat(surfaceFormat);
 
     My3DWindow window;
-    window.setFormat(fmt);
+    window.setFormat(surfaceFormat);
 
     window.show();
     return application.exec();

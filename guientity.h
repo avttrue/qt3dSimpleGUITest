@@ -13,12 +13,6 @@ public:
     EntityTransform(Qt3DCore::QEntity *parent);
     Qt3DCore::QTransform *Transform() const;
 
-    /*!
-     * \brief addComponentToDeep - предназначено для регистрации EntityTransform в Qt3DRender::QLayer.
-     * Когда Qt3DRender::QLayer.setRecursive(true) не срабатывает.
-     */
-    void addComponentToDeep(Qt3DCore::QComponent *comp);
-
 protected:
     Qt3DCore::QTransform* m_Transform;
 };

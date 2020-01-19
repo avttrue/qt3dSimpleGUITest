@@ -22,7 +22,6 @@
 #include <Qt3DExtras/QPlaneMesh>
 #include <Qt3DExtras/QPhongMaterial>
 #include <Qt3DExtras/QPhongAlphaMaterial>
-#include <Qt3DExtras/QGoochMaterial>
 #include <Qt3DRender/QObjectPicker>
 #include <Qt3DRender/QPickEvent>
 
@@ -48,11 +47,8 @@ void My3DWindow::keyPressEvent(QKeyEvent *e)
     if(e->key() == Qt::Key_Space) createScene();
     else if(e->key() == Qt::Key_W && testtext)
     {
-//        auto pos = testtext->Transform()->translation() + QVector3D(0.0f, 0.001f, 0.0f);
-//        testtext->Transform()->setTranslation(pos);
-//        qDebug() << testtext->Transform()->translation();
-    }
 
+    }
 }
 
 void My3DWindow::createScene()
@@ -61,11 +57,10 @@ void My3DWindow::createScene()
     createFramegraph();
     setRootEntity(m_Scene);
 
-
     // tests
-    testtext = creatTextEntity("TEST TEST TEST", 10, Qt::red, "monospace", 75);
-    //testtext->Transform()->setScale(0.1f);
-    testtext->Transform()->setTranslation(QVector3D(100.0f, 100.0f, 0.0f));
+    testtext = creatTextEntity("TEST", 10, Qt::red, "monospace", 75);
+    testtext->Transform()->setScale(10.0f);
+    testtext->Transform()->setTranslation(QVector3D(100.0f, 100.0f, -0.01f));
 
     Test1();
     Test2();
@@ -83,7 +78,7 @@ EntityText* My3DWindow::creatTextEntity(const QString &text,
     auto picker = new Qt3DRender::QObjectPicker;
     picker->setHoverEnabled(true);
     QObject::connect(picker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "text clicked"; });
-
+    qDebug() << "text height =" << entity->height() << ", width =" << entity->width();
     entity->addComponent(picker);
     entity->addComponent(m_LayerGui);
     return entity;
@@ -97,7 +92,7 @@ void My3DWindow::createFramegraph()
 
     auto renderSurfaceSelector = new Qt3DRender::QRenderSurfaceSelector;
 
-    Qt3DRender::QSortPolicy *sortPolicy = new Qt3DRender::QSortPolicy(renderSurfaceSelector);
+    auto sortPolicy = new Qt3DRender::QSortPolicy(renderSurfaceSelector);
     sortPolicy->setSortTypes(QVector<Qt3DRender::QSortPolicy::SortType>() << Qt3DRender::QSortPolicy::BackToFront);
 
     renderSettings()->pickingSettings()->setPickMethod(Qt3DRender::QPickingSettings::TrianglePicking);
@@ -128,6 +123,12 @@ void My3DWindow::createFramegraph()
     cameraSelector = new Qt3DRender::QCameraSelector(viewport);
     m_CameraGui = new Qt3DRender::QCamera(cameraSelector);
     m_CameraGui->setProjectionType(Qt3DRender::QCameraLens::OrthographicProjection);
+    m_CameraGui->setPosition(QVector3D(0.0f, 0.0f, 0.0f));
+    m_CameraGui->setViewCenter(QVector3D(0.0f, 0.0f, 0.0f));
+    m_CameraGui->lens()->setLeft(0);
+    m_CameraGui->lens()->setTop(0);
+    m_CameraGui->lens()->setNearPlane(-1.0f);
+    m_CameraGui->lens()->setFarPlane(1.0f);
     setGuiCameraProjection();
     cameraSelector->setCamera(m_CameraGui);
 
@@ -139,112 +140,96 @@ void My3DWindow::createFramegraph()
     renderSurfaceSelector->setSurface(this);
     setActiveFrameGraph(renderSurfaceSelector);
 
-    auto cameraController1 = new Qt3DExtras::QFirstPersonCameraController(m_Scene);
-    cameraController1->setCamera(m_CameraMain);
-}
-
-void My3DWindow::setGuiCameraProjection()
-{
-    if (m_CameraGui)
-    {
-        m_CameraGui->lens()->setLeft(0);
-        m_CameraGui->lens()->setTop(0);
-        m_CameraGui->lens()->setRight(static_cast<float>(width() * devicePixelRatio()));
-        m_CameraGui->lens()->setBottom(static_cast<float>(height() * devicePixelRatio()));
-        m_CameraGui->lens()->setNearPlane(-1.0f);
-        m_CameraGui->lens()->setFarPlane(1.0f);
-
-        //        auto camera_aspect = static_cast<float>(width()) / height();
-        //        m_CameraGui->lens()->setPerspectiveProjection(45.0f, camera_aspect , 0.0f, 1.0f);
-    }
-}
-
-void My3DWindow::setMainCameraProjection(int width, int height)
-{
-    if (m_CameraMain)
-    {
-        auto camera_aspect = static_cast<float>(width) / height;
-        m_CameraMain->lens()->setPerspectiveProjection(45.0f, camera_aspect , 0.1f, 1000.0f);
-    }
-}
-
-void My3DWindow::Test1()
-{
-    if(!m_Scene) {qCritical() << "Scene is empty"; return; }
-
-    auto sphere1 = new Qt3DCore::QEntity(m_Scene);
-
-    auto renderStateSet = new Qt3DRender::QRenderStateSet(sphere1);
+    auto renderStateSet = new Qt3DRender::QRenderStateSet(activeFrameGraph());
     auto renderCullFace = new Qt3DRender::QCullFace(renderStateSet);
     renderCullFace->setMode(Qt3DRender::QCullFace::NoCulling);
     renderStateSet->addRenderState(renderCullFace);
 
-    auto transform1 = new Qt3DCore::QTransform;
-    transform1->setTranslation(QVector3D(0.0f, 0.0f, -50.0f));
+    auto cameraControllerMain = new Qt3DExtras::QFirstPersonCameraController(m_CameraMain);
+    cameraControllerMain->setCamera(m_CameraMain);
+}
 
-    auto material1 = new Qt3DExtras::QPhongAlphaMaterial;
-    material1->setAmbient(Qt::blue);
+void My3DWindow::setGuiCameraProjection()
+{
+    if (!m_CameraGui) {qCritical() << "GUI camera is empty"; return; }
 
-    auto spheremesh1 = new Qt3DExtras::QSphereMesh;
-    spheremesh1->setRadius(5);
-    spheremesh1->setSlices(16);
-    spheremesh1->setRings(16);
+    m_CameraGui->lens()->setRight(static_cast<float>(width() * devicePixelRatio()));
+    m_CameraGui->lens()->setBottom(static_cast<float>(height() * devicePixelRatio()));
 
-    auto picker1 = new Qt3DRender::QObjectPicker;
-    picker1->setHoverEnabled(true);
-    QObject::connect(picker1, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "blue sphere clicked"; });
+    //  auto camera_aspect = static_cast<float>(width()) / height();
+    //  m_CameraGui->lens()->setPerspectiveProjection(45.0f, camera_aspect , 0.1f, 1000.0f);
+}
 
-    sphere1->addComponent(material1);
-    sphere1->addComponent(spheremesh1);
-    sphere1->addComponent(transform1);
-    sphere1->addComponent(picker1);
-    sphere1->addComponent(m_LayerMain);
+void My3DWindow::setMainCameraProjection(int width, int height)
+{
+    if (!m_CameraMain) {qCritical() << "Main camera is empty"; return; }
+
+    m_CameraMain->lens()->setAspectRatio(static_cast<float>(width) / height);
+}
+
+void My3DWindow::Test1()
+{
+    auto sphere = new Qt3DCore::QEntity(m_Scene);
+    auto sphereTransform = new Qt3DCore::QTransform;
+    sphereTransform->setTranslation(QVector3D(0.0f, 0.0f, 0.0f));
+    auto sphereMaterial = new Qt3DExtras::QPhongAlphaMaterial;
+    sphereMaterial->setAmbient(Qt::blue);
+    auto sphereMesh = new Qt3DExtras::QSphereMesh;
+    sphereMesh->setRadius(5);
+    sphereMesh->setSlices(16);
+    sphereMesh->setRings(16);
+
+    auto spherePicker = new Qt3DRender::QObjectPicker;
+    QObject::connect(spherePicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "sphere clicked"; });
+
+    sphere->addComponent(sphereMaterial);
+    sphere->addComponent(sphereMesh);
+    sphere->addComponent(sphereTransform);
+    sphere->addComponent(spherePicker);
+    sphere->addComponent(m_LayerMain);
 }
 
 void My3DWindow::Test2()
 {
+    // cube
     auto cube = new Qt3DCore::QEntity(m_Scene);
-    auto transform = new Qt3DCore::QTransform;
-    transform->setTranslation(QVector3D(200.0f, 200.0f, 0.0f));
-
-    auto material = new Qt3DExtras::QPhongMaterial;
-    material->setAmbient(Qt::green);
-
-    auto cubemesh = new Qt3DExtras::QCuboidMesh;
-    cubemesh->setXExtent(100);
-    cubemesh->setYExtent(100);
-    cubemesh->setZExtent(1);
-
-    auto cubepicker = new Qt3DRender::QObjectPicker;
-    cubepicker->setHoverEnabled(true);
-    QObject::connect(cubepicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "cube clicked"; });
-    QObject::connect(cubepicker, &Qt3DRender::QObjectPicker::moved, [=](){ qDebug() << "cube moved"; });
-    cube->addComponent(material);
-    cube->addComponent(cubemesh);
-    cube->addComponent(transform);
-    cube->addComponent(cubepicker);
+    auto cubeTransform = new Qt3DCore::QTransform;
+    cubeTransform->setTranslation(QVector3D(200.0f, 200.0f, -0.01f));
+    auto cubeMaterial = new Qt3DExtras::QPhongMaterial;
+    cubeMaterial->setAmbient(Qt::green);
+    auto cubeMesh = new Qt3DExtras::QCuboidMesh;
+    cubeMesh->setXExtent(100);
+    cubeMesh->setYExtent(100);
+    cubeMesh->setZExtent(1);
+    auto cubePicker = new Qt3DRender::QObjectPicker;
+    cubePicker->setHoverEnabled(true);
+    QObject::connect(cubePicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "cube clicked"; });
+    QObject::connect(cubePicker, &Qt3DRender::QObjectPicker::moved, [=](){ qDebug() << "cube moved"; });
+    cube->addComponent(cubeMaterial);
+    cube->addComponent(cubeMesh);
+    cube->addComponent(cubeTransform);
+    cube->addComponent(cubePicker);
     cube->addComponent(m_LayerGui);
 
-    Qt3DCore::QEntity *planeEntity = new Qt3DCore::QEntity(m_Scene);
-    Qt3DRender::QMaterial *meshMaterial = new Qt3DExtras::QPhongMaterial;
-    Qt3DExtras::QPlaneMesh *planeMesh = new Qt3DExtras::QPlaneMesh;
+    // plane
+    auto plane = new Qt3DCore::QEntity(m_Scene);
+    auto planeMaterial = new Qt3DExtras::QPhongMaterial;
+    planeMaterial->setAmbient(Qt::yellow);
+    auto planeMesh = new Qt3DExtras::QPlaneMesh;
     planeMesh->setHeight(100);
     planeMesh->setWidth(100);
     auto planeTransform = new Qt3DCore::QTransform;
-    planeTransform->setRotationX(-45);
-    planeTransform->setRotationY(-45);
-    planeTransform->setRotationZ(-45);
-    planeTransform->setTranslation(QVector3D(100.0f, 400.0f, 0.0f));
-
+    planeTransform->setRotationX(0.0f);
+    planeTransform->setRotationY(90.0f);
+    planeTransform->setRotationZ(90.0f);
+    planeTransform->setTranslation(QVector3D(300.0f, 300.0f, -0.01f));
     auto planepicker = new Qt3DRender::QObjectPicker;
-    planepicker->setHoverEnabled(true);
     QObject::connect(planepicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "plane clicked"; });
-
-    planeEntity->addComponent(planeTransform);
-    planeEntity->addComponent(planeMesh);
-    planeEntity->addComponent(meshMaterial);
-    planeEntity->addComponent(planepicker);
-    planeEntity->addComponent(m_LayerGui);
+    plane->addComponent(planeTransform);
+    plane->addComponent(planeMesh);
+    plane->addComponent(planeMaterial);
+    plane->addComponent(planepicker);
+    plane->addComponent(m_LayerGui);
 }
 
 Qt3DCore::QEntity *My3DWindow::Scene() const { return m_Scene; }

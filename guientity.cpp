@@ -13,22 +13,6 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
 
 Qt3DCore::QTransform *EntityTransform::Transform() const { return m_Transform; }
 
-void EntityTransform::addComponentToDeep(Qt3DCore::QComponent *comp)
-{
-    if(!comp) {qCritical() << __func__ << ": component is empty";  return; }
-
-    addComponent(comp);
-    for(auto n: childNodes())
-    {
-        auto e = qobject_cast<Qt3DCore::QEntity*>(n);
-        if(e)
-        {
-            if(qobject_cast<EntityTransform*>(e)) addComponentToDeep(comp);
-            else e->addComponent(comp);
-        }
-    }
-}
-
 EntityText::EntityText(Qt3DCore::QEntity *parent, 
                        const QString &text,
                        int size,
