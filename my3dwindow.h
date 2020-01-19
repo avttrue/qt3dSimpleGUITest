@@ -1,6 +1,7 @@
 #ifndef MY3DWINDOW_H
 #define MY3DWINDOW_H
 
+#include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
 #include <Qt3DRender/QLayer>
 
@@ -33,7 +34,7 @@ private:
     void Test1();
     void Test2();
 
-    EntityText* testtext;
+    Qt3DCore::QTransform* testTransform;
     Qt3DCore::QEntity *m_Scene;
     Qt3DRender::QCamera *m_CameraMain;
     Qt3DRender::QCamera *m_CameraGui;

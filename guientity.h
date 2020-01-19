@@ -29,8 +29,8 @@ public:
                int weight = QFont::Bold);
     void setText(const QString& text);
     void setTextWeight(int value);
-    int width() const;
-    int height() const;
+    int Width() const;
+    int Height() const;
 
 protected:
     void resize();
@@ -38,8 +38,8 @@ protected:
 private:
     QFont m_Font;
     Qt3DExtras::QText2DEntity* m_Text2DEntity;
-    int m_width;
-    int m_height;
+    int m_Width;
+    int m_Height;
 };
 
 
