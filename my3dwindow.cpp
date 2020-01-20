@@ -2,6 +2,7 @@
 #include "guientity.h"
 
 #include <QResizeEvent>
+
 #include <Qt3DExtras/QFirstPersonCameraController>
 #include <Qt3DRender/QRenderSurfaceSelector>
 #include <Qt3DRender/QNoDraw>
@@ -31,31 +32,71 @@ My3DWindow::My3DWindow(QScreen *screen):
     m_CameraMain(nullptr),
     m_CameraGui(nullptr),
     m_LayerMain(nullptr),
-    m_LayerGui(nullptr)
-{    
+    m_LayerGui(nullptr),
+    m_MouseButtonPressEnabled(true)
+{
     setSurfaceType(QSurface::OpenGLSurface);
+    installEventFilter(this);
 }
 
-void My3DWindow::resizeEvent(QResizeEvent *e)
+bool My3DWindow::eventFilter(QObject* object, QEvent* event)
 {
-    setMainCameraProjection(e->size().width(), e->size().height());
-    setGuiCameraProjection();
-}
-
-void My3DWindow::keyPressEvent(QKeyEvent *e)
-{
-    if(e->key() == Qt::Key_Space) createScene();
-    else if(e->key() == Qt::Key_W && testTransform)
+    switch (event->type())
     {
-        auto pos = testTransform->translation() + QVector3D(0.0f, 0.0f, -0.1f);
-        testTransform->setTranslation(pos);
-        qDebug() << testTransform->translation();
+    case QEvent::Resize:
+    {
+        auto e = static_cast<QResizeEvent*>(event);
+        if(!e) { qCritical() << "Resize Event error"; return true; }
+
+        setMainCameraProjection(e->size().width(), e->size().height());
+        setGuiCameraProjection();
+
+        return QObject::eventFilter(object, event);
     }
-    else if(e->key() == Qt::Key_S && testTransform)
+    case QEvent::KeyPress:
     {
-        auto pos = testTransform->translation() + QVector3D(0.0f, 0.0f, 0.1f);
-        testTransform->setTranslation(pos);
-        qDebug() << testTransform->translation();
+        auto e = static_cast<QKeyEvent*>(event);
+        if(!e)  { qCritical() << "Key Event error"; return true; }
+
+        if(e->key() == Qt::Key_Space) createScene();
+
+        else if(e->key() == Qt::Key_W && testTransform)
+        {
+            auto pos = testTransform->translation() + QVector3D(0.0f, 0.0f, -0.1f);
+            testTransform->setTranslation(pos);
+            qDebug() << testTransform->translation();
+        }
+        else if(e->key() == Qt::Key_S && testTransform)
+        {
+            auto pos = testTransform->translation() + QVector3D(0.0f, 0.0f, 0.1f);
+            testTransform->setTranslation(pos);
+            qDebug() << testTransform->translation();
+        }
+
+        return !QObject::eventFilter(object, event);
+    }
+    case QEvent::MouseMove:
+    {
+        return QObject::eventFilter(object, event);
+    }
+    case QEvent::MouseButtonPress:
+    {
+        auto e = static_cast<QMouseEvent*>(event);
+        if(!e) { qCritical() << "Mouse Event error"; return true; }
+
+        qDebug() << e->pos();
+        // если нажали в GUI
+        //MouseButtonPressEnabled = false;
+
+        return QObject::eventFilter(object, event);
+    }
+    case QEvent::MouseButtonRelease:
+    {
+        // если отжали в GUI
+        //MouseButtonPressEnabled = true;
+        return QObject::eventFilter(object, event);
+    }
+    default: {return QObject::eventFilter(object, event);}
     }
 }
 
@@ -188,7 +229,7 @@ void My3DWindow::Test1()
     sphereMesh->setRings(16);
 
     auto spherePicker = new Qt3DRender::QObjectPicker;
-    QObject::connect(spherePicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "sphere clicked"; });
+    QObject::connect(spherePicker, &Qt3DRender::QObjectPicker::clicked, [=](){if(m_MouseButtonPressEnabled) qDebug() << "sphere clicked"; });
 
     sphere->addComponent(sphereMaterial);
     sphere->addComponent(sphereMesh);
@@ -240,7 +281,8 @@ void My3DWindow::Test2()
     plane->addComponent(m_LayerGui);
 }
 
+void My3DWindow::MouseButtonPressEnabled(bool value) { m_MouseButtonPressEnabled = value; }
+bool My3DWindow::isMouseButtonPressEnabled() const { return m_MouseButtonPressEnabled; }
 Qt3DCore::QEntity *My3DWindow::Scene() const { return m_Scene; }
 Qt3DRender::QLayer *My3DWindow::LayerMain() const { return m_LayerMain; }
 Qt3DRender::QLayer *My3DWindow::LayerGui() const { return m_LayerGui; }
-

@@ -23,9 +23,11 @@ public:
                                 const QString &family,
                                 int weight);
 
+    bool isMouseButtonPressEnabled() const;
+    void MouseButtonPressEnabled(bool value);
+
 protected:
-    void resizeEvent(QResizeEvent *e) override;
-    void keyPressEvent(QKeyEvent *e) override;
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 private:
     void createFramegraph();
@@ -40,6 +42,8 @@ private:
     Qt3DRender::QCamera *m_CameraGui;
     Qt3DRender::QLayer *m_LayerMain;
     Qt3DRender::QLayer *m_LayerGui;
+
+    bool m_MouseButtonPressEnabled;
 };
 
 #endif // MY3DWINDOW_H

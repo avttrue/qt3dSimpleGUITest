@@ -1,4 +1,4 @@
-QT       += core 3dlogic 3dextras 3dinput 3danimation
+QT       += gui core 3dlogic 3dextras 3dinput 3danimation
 
 CONFIG += c++17
 
