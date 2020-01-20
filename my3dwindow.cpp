@@ -194,6 +194,7 @@ void My3DWindow::createFramegraph()
 
 void My3DWindow::setGuiCameraProjection()
 {
+    if (!m_Scene) return;
     if (!m_CameraGui) {qCritical() << "GUI camera is empty"; return; }
 
     m_CameraGui->lens()->setRight(static_cast<float>(width() * devicePixelRatio()));
@@ -202,6 +203,7 @@ void My3DWindow::setGuiCameraProjection()
 
 void My3DWindow::setMainCameraProjection(int width, int height)
 {
+    if (!m_Scene) return;
     if (!m_CameraMain) {qCritical() << "Main camera is empty"; return; }
 
     m_CameraMain->lens()->setAspectRatio(static_cast<float>(width) / height);
