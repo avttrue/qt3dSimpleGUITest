@@ -107,28 +107,23 @@ void My3DWindow::createScene()
     setRootEntity(m_Scene);
 
     // tests
-    auto text = creatTextEntity("TEST", 10, Qt::red, "monospace", 75);
-    text->Transform()->setScale(10.0f);
-    text->Transform()->setTranslation(QVector3D(100.0f, 100.0f, -0.01f));
+    auto text = creatTextEntity("TEST", 50, QSizeF(100, 100), Qt::red, "monospace", 75);
+    text->Transform()->setTranslation(QVector3D(100.0f, 100.0f, 0.0f));
 
     Test1();
     Test2();
 }
 
-EntityText* My3DWindow::creatTextEntity(const QString &text,
-                                        int size,
-                                        const QColor &color,
-                                        const QString &family,
-                                        int weight)
+Entity3DText* My3DWindow::creatTextEntity(const QString &text,
+                                          int pointSize,
+                                          const QSizeF& size,
+                                          const QColor &color,
+                                          const QString &family,
+                                          int weight)
 {
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
-    auto entity = new EntityText(m_Scene, text, size, color, family, weight);
-    auto picker = new Qt3DRender::QObjectPicker;
-    picker->setHoverEnabled(true);
-    QObject::connect(picker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "text clicked"; });
-    qDebug() << "text height =" << entity->Height() << ", width =" << entity->Width();
-    entity->addComponent(picker);
+    auto entity = new Entity3DText(m_Scene, text, pointSize, size, color, family, weight);
     entity->addComponent(m_LayerGui);
     return entity;
 }

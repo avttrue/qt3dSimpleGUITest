@@ -42,5 +42,34 @@ private:
     int m_Height;
 };
 
+class Entity3DText : public EntityTransform
+{
+    Q_OBJECT
+
+public:
+    Entity3DText(Qt3DCore::QEntity *parent,
+                 const QString& text,
+                 int pointSize,
+                 const QSizeF& size,
+                 const QColor &color = Qt::white,
+                 const QString &family = "monospace",
+                 int weight = QFont::Bold);
+    float RealWidth() const;
+    float RealHeight() const;
+    void resize(const QSizeF& size);
+    QSizeF getSize() const;
+
+private:
+    QFont m_Font;
+    float m_RealWidth;
+    float m_RealHeight;
+    QSizeF m_Size;
+    int m_LoadingStatus;
+
+Q_SIGNALS:
+        void signalLoaded();
+
+};
+
 
 #endif // GUIENTITY_H
