@@ -20,8 +20,7 @@
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/QSphereMesh>
 #include <Qt3DExtras/QCuboidMesh>
-#include <Qt3DExtras/QPlaneMesh>
-#include <Qt3DExtras/QPhongMaterial>
+#include <Qt3DExtras/QDiffuseSpecularMaterial>
 #include <Qt3DExtras/QPhongAlphaMaterial>
 #include <Qt3DRender/QObjectPicker>
 #include <Qt3DRender/QPickEvent>
@@ -107,8 +106,8 @@ void My3DWindow::createScene()
     setRootEntity(m_Scene);
 
     // tests
-    auto text = creatTextEntity("TEST", 50, QSizeF(100, 100), Qt::red, "monospace", 75);
-    text->Transform()->setTranslation(QVector3D(100.0f, 100.0f, 0.0f));
+    auto text = creatTextEntity("TEST", 20, QSizeF(100, 0), Qt::red);
+    text->Transform()->setTranslation(QVector3D(0.0f, 100.0f, 0.0f));
 
     Test1();
     Test2();
@@ -117,13 +116,11 @@ void My3DWindow::createScene()
 Entity3DText* My3DWindow::creatTextEntity(const QString &text,
                                           int pointSize,
                                           const QSizeF& size,
-                                          const QColor &color,
-                                          const QString &family,
-                                          int weight)
+                                          const QColor &color)
 {
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
-    auto entity = new Entity3DText(m_Scene, text, pointSize, size, color, family, weight);
+    auto entity = new Entity3DText(m_Scene, text, size, color, pointSize);
     entity->addComponent(m_LayerGui);
     return entity;
 }
@@ -148,23 +145,26 @@ void My3DWindow::createFramegraph()
     auto clearBuffers = new Qt3DRender::QClearBuffers(viewport);
     clearBuffers->setBuffers(Qt3DRender::QClearBuffers::AllBuffers);
     clearBuffers->setClearColor(Qt::lightGray);
-    new Qt3DRender::QNoDraw(clearBuffers);
 
-    auto cameraSelectorMain = new Qt3DRender::QCameraSelector(viewport);
-
-    auto renderStateSet = new Qt3DRender::QRenderStateSet(cameraSelectorMain);
+    auto renderStateSet = new Qt3DRender::QRenderStateSet(clearBuffers);
     auto renderCullFace = new Qt3DRender::QCullFace(renderStateSet);
     renderCullFace->setMode(Qt3DRender::QCullFace::NoCulling);
     renderStateSet->addRenderState(renderCullFace);
+
+    new Qt3DRender::QNoDraw(clearBuffers);
+
+    auto cameraSelectorMain = new Qt3DRender::QCameraSelector(viewport);
 
     m_CameraMain = new Qt3DRender::QCamera(cameraSelectorMain);
     m_CameraMain->setProjectionType(Qt3DRender::QCameraLens::PerspectiveProjection);
     m_CameraMain->setPosition(QVector3D(0.0f, 0.0f, 100.0f));
     m_CameraMain->setViewCenter(QVector3D(0.0f, 0.0f, 0.0f));
+    m_CameraMain->lens()->setNearPlane(0.1f);
+    m_CameraMain->lens()->setFarPlane(1000.0f);
     setMainCameraProjection(width(), height());
     cameraSelectorMain->setCamera(m_CameraMain);
 
-    m_LayerMain = new Qt3DRender::QLayer;
+    m_LayerMain = new Qt3DRender::QLayer(cameraSelectorMain);
     m_LayerMain->setRecursive(true);
     auto filterMain = new Qt3DRender::QLayerFilter(cameraSelectorMain);
     filterMain->addLayer(m_LayerMain);
@@ -181,7 +181,7 @@ void My3DWindow::createFramegraph()
     setGuiCameraProjection();
     cameraSelectorGui->setCamera(m_CameraGui);
 
-    m_LayerGui = new Qt3DRender::QLayer;
+    m_LayerGui = new Qt3DRender::QLayer(cameraSelectorGui);
     m_LayerGui->setRecursive(true);
     auto filterGui = new Qt3DRender::QLayerFilter(cameraSelectorGui);
     filterGui->addLayer(m_LayerGui);
@@ -199,9 +199,6 @@ void My3DWindow::setGuiCameraProjection()
 
     m_CameraGui->lens()->setRight(static_cast<float>(width() * devicePixelRatio()));
     m_CameraGui->lens()->setBottom(static_cast<float>(height() * devicePixelRatio()));
-
-    //  auto camera_aspect = static_cast<float>(width()) / height();
-    //  m_CameraGui->lens()->setPerspectiveProjection(45.0f, camera_aspect , 0.1f, 1000.0f);
 }
 
 void My3DWindow::setMainCameraProjection(int width, int height)
@@ -238,8 +235,8 @@ void My3DWindow::Test2()
     // cube
     auto cube = new Qt3DCore::QEntity(m_Scene);
     auto cubeTransform = new Qt3DCore::QTransform;
-    cubeTransform->setTranslation(QVector3D(200.0f, 200.0f, 0.0f));
-    auto cubeMaterial = new Qt3DExtras::QPhongMaterial;
+    cubeTransform->setTranslation(QVector3D(50.0f, 50.0f, -0.01f));
+    auto cubeMaterial = new Qt3DExtras::QDiffuseSpecularMaterial;
     cubeMaterial->setAmbient(Qt::green);
     auto cubeMesh = new Qt3DExtras::QCuboidMesh;
     cubeMesh->setXExtent(100);
@@ -254,26 +251,6 @@ void My3DWindow::Test2()
     cube->addComponent(cubeTransform);
     cube->addComponent(cubePicker);
     cube->addComponent(m_LayerGui);
-
-    // plane
-    auto plane = new Qt3DCore::QEntity(m_Scene);
-    auto planeMaterial = new Qt3DExtras::QPhongMaterial;
-    planeMaterial->setAmbient(Qt::yellow);
-    auto planeMesh = new Qt3DExtras::QPlaneMesh;
-    planeMesh->setHeight(100);
-    planeMesh->setWidth(100);
-    auto planeTransform = new Qt3DCore::QTransform;
-    planeTransform->setRotationX(0.0f);
-    planeTransform->setRotationY(90.0f);
-    planeTransform->setRotationZ(90.0f);
-    planeTransform->setTranslation(QVector3D(300.0f, 300.0f, -0.01f));
-    auto planepicker = new Qt3DRender::QObjectPicker;
-    QObject::connect(planepicker, &Qt3DRender::QObjectPicker::clicked, [=](){ qDebug() << "plane clicked"; });
-    plane->addComponent(planeTransform);
-    plane->addComponent(planeMesh);
-    plane->addComponent(planeMaterial);
-    plane->addComponent(planepicker);
-    plane->addComponent(m_LayerGui);
 }
 
 void My3DWindow::MouseButtonPressEnabled(bool value) { m_MouseButtonPressEnabled = value; }

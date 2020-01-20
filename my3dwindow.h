@@ -20,9 +20,7 @@ public:
     Entity3DText* creatTextEntity(const QString &text,
                                   int pointSize,
                                   const QSizeF &size,
-                                  const QColor &color,
-                                  const QString &family,
-                                  int weight);
+                                  const QColor &color);
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);
@@ -37,7 +35,7 @@ private:
     void Test1();
     void Test2();
 
-    Qt3DCore::QTransform* testTransform;
+    Qt3DCore::QTransform* testTransform; // delete
     Qt3DCore::QEntity *m_Scene;
     Qt3DRender::QCamera *m_CameraMain;
     Qt3DRender::QCamera *m_CameraGui;

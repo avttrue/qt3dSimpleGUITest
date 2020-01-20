@@ -49,17 +49,28 @@ class Entity3DText : public EntityTransform
 public:
     Entity3DText(Qt3DCore::QEntity *parent,
                  const QString& text,
-                 int pointSize,
+                 const QSizeF& size,
+                 const QFont& font,
+                 const QColor &color);
+    Entity3DText(Qt3DCore::QEntity *parent,
+                 const QString& text,
                  const QSizeF& size,
                  const QColor &color = Qt::white,
+                 int pointSize = 20,
                  const QString &family = "monospace",
-                 int weight = QFont::Bold);
+                 int weight = QFont::Bold,
+                 bool italic = false);
     float RealWidth() const;
     float RealHeight() const;
     void resize(const QSizeF& size);
     QSizeF getSize() const;
+    QRectF Box();
 
 private:
+    void init(const QString& text,
+              const QSizeF& size,
+              const QFont& font,
+              const QColor &color);
     QFont m_Font;
     float m_RealWidth;
     float m_RealHeight;
