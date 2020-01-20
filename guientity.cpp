@@ -157,8 +157,6 @@ void Entity3DText::resize(const QSizeF &size)
 
     m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
     m_Size = QSizeF(static_cast<qreal>(m_RealWidth * w_scale), static_cast<qreal>(m_RealHeight * h_scale));
-
-    qDebug() << Box();
 }
 
 QRectF Entity3DText::Box() { return QRectF(m_Transform->translation().toPointF(), m_Size); }

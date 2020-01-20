@@ -154,7 +154,6 @@ void My3DWindow::createFramegraph()
     new Qt3DRender::QNoDraw(clearBuffers);
 
     auto cameraSelectorMain = new Qt3DRender::QCameraSelector(viewport);
-
     m_CameraMain = new Qt3DRender::QCamera(cameraSelectorMain);
     m_CameraMain->setProjectionType(Qt3DRender::QCameraLens::PerspectiveProjection);
     m_CameraMain->setPosition(QVector3D(0.0f, 0.0f, 100.0f));
