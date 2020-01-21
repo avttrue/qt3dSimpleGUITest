@@ -16,58 +16,6 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
 
 Qt3DCore::QTransform *EntityTransform::Transform() const { return m_Transform; }
 
-EntityText::EntityText(Qt3DCore::QEntity *parent, 
-                       const QString &text,
-                       int size,
-                       const QColor &color,
-                       const QString &family,
-                       int weight):
-    EntityTransform(parent),
-    m_Width(0),
-    m_Height(0)
-{
-    setObjectName("EntityText");
-
-    m_Text2DEntity = new Qt3DExtras::QText2DEntity;
-    m_Font = QFont(family, size, weight);
-
-    m_Text2DEntity->setFont(m_Font);
-    m_Text2DEntity->setColor(color);
-
-    setText(text);
-
-    // обход бага, описано: https://forum.qt.io/topic/92944/qt3d-how-to-print-text-qtext2dentity/7
-    m_Text2DEntity->setParent(this);
-}
-
-void EntityText::setText(const QString &text)
-{
-    m_Text2DEntity->setText(text);
-    resize();
-}
-
-void EntityText::setTextWeight(int value)
-{
-    m_Font.setWeight(value);
-    m_Text2DEntity->setFont(m_Font);
-    resize();
-}
-
-void EntityText::resize()
-{
-    QFontMetrics fm(m_Font);
-    auto rect = fm.boundingRect(m_Text2DEntity->text());
-
-    m_Width = rect.width();
-    m_Height = rect.height();
-
-    m_Text2DEntity->setHeight(m_Height);
-    m_Text2DEntity->setWidth(m_Width);
-}
-
-int EntityText::Height() const { return m_Height; }
-int EntityText::Width() const { return m_Width; }
-
 Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QString &text,
                            const QSizeF &size,
@@ -137,7 +85,6 @@ void Entity3DText::slotResize()
     float h_scale = m_Size.height() > 0
                         ? static_cast<float>(m_Size.height()) / m_RealHeight
                         : static_cast<float>(m_Size.width()) / m_FontMetricWH;
-
 
     m_Rect = QRectF(static_cast<qreal>(m_Transform->translation().x()),
                     static_cast<qreal>(m_Transform->translation().y()),
