@@ -71,38 +71,21 @@ int EntityText::Width() const { return m_Width; }
 Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QString &text,
                            const QSizeF &size,
-                           const QFont &font,
-                           const QColor &color):
-    EntityTransform(parent),
-    m_RealWidth(0.0f),
-    m_RealHeight(0.0f),
-    m_Rect(QRectF()),
-    m_LoadingStatus(0)
-{
-    init(text, size, font, color);
-}
-
-Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
-                           const QString &text,
-                           const QSizeF &size,
                            const QColor &color,
-                           int pointSize,
-                           const QString &family,
-                           int weight,
-                           bool italic) :
+                           const QFont &font):
     EntityTransform(parent),
     m_RealWidth(0.0f),
     m_RealHeight(0.0f),
     m_Rect(QRectF()),
     m_LoadingStatus(0)
 {
-    init(text, size, QFont(family, pointSize, weight, italic), color);
+    init(text, size, color, font);
 }
 
 void Entity3DText::init(const QString &text,
                         const QSizeF &size,
-                        const QFont &font,
-                        const QColor &color)
+                        const QColor &color,
+                        const QFont &font)
 {
     setObjectName("Entity3DText");
     auto *material = new Qt3DExtras::QGoochMaterial;

@@ -50,16 +50,8 @@ public:
     Entity3DText(Qt3DCore::QEntity *parent,
                  const QString& text,
                  const QSizeF& size,
-                 const QFont& font,
-                 const QColor &color);
-    Entity3DText(Qt3DCore::QEntity *parent,
-                 const QString& text,
-                 const QSizeF& size,
-                 const QColor &color = Qt::white,
-                 int pointSize = 20,
-                 const QString &family = "monospace",
-                 int weight = QFont::Bold,
-                 bool italic = false);
+                 const QColor &color,
+                 const QFont& font = QFont("monospace", 20, QFont::Bold));
     float RealWidth() const;
     float RealHeight() const;
     void resize(const QSizeF& size);
@@ -68,8 +60,8 @@ public:
 private:
     void init(const QString& text,
               const QSizeF& size,
-              const QFont& font,
-              const QColor &color);
+              const QColor &color,
+              const QFont& font);
     QFont m_Font;
     float m_RealWidth;
     float m_RealHeight;    

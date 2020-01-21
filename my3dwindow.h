@@ -18,7 +18,6 @@ public:
     Qt3DCore::QEntity *Scene() const;
     void createScene();
     Entity3DText* creatTextEntity(const QString &text,
-                                  int pointSize,
                                   const QSizeF &size,
                                   const QColor &color);
 

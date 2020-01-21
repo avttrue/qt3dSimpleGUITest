@@ -106,10 +106,10 @@ void My3DWindow::createScene()
     setRootEntity(m_Scene);
 
     // tests
-    auto text1 = creatTextEntity("TEST", 30, QSizeF(100, 0), Qt::red);
+    auto text1 = creatTextEntity("TEST", QSizeF(100, 0), Qt::red);
     text1->Transform()->setTranslation(QVector3D(0.0f, 100.0f, 0.0f));
 
-    auto text2 = creatTextEntity("TEST", 30, QSizeF(0, 20), Qt::red);
+    auto text2 = creatTextEntity("TEST", QSizeF(0, 20), Qt::red);
     text2->Transform()->setTranslation(QVector3D(0.0f, 200.0f, 0.0f));
 
     Test1();
@@ -117,13 +117,12 @@ void My3DWindow::createScene()
 }
 
 Entity3DText* My3DWindow::creatTextEntity(const QString &text,
-                                          int pointSize,
                                           const QSizeF& size,
                                           const QColor &color)
 {
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
-    auto entity = new Entity3DText(m_Scene, text, size, color, pointSize);
+    auto entity = new Entity3DText(m_Scene, text, size, color);
     entity->addComponent(m_LayerGui);
     return entity;
 }
