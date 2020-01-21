@@ -115,7 +115,7 @@ void Entity3DText::init(const QString &text,
 
     QFontMetrics fm(m_Font);
     auto rect = fm.boundingRect(text);
-    m_FontMetricWH = static_cast<float>(rect.width()) / (rect.height() != 0 ? rect.height() : 1);
+    m_FontMetricWH = rect.height() == 0 ? 1 : static_cast<float>(rect.width()) / rect.height();
 
     auto funcExtentChanged = [=]()
     {
