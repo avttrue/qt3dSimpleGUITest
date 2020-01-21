@@ -76,7 +76,7 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
     EntityTransform(parent),
     m_RealWidth(0.0f),
     m_RealHeight(0.0f),
-    m_Size(0.0, 0.0),
+    m_Rect(QRectF()),
     m_LoadingStatus(0)
 {
     init(text, size, font, color);
@@ -93,7 +93,7 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
     EntityTransform(parent),
     m_RealWidth(0.0f),
     m_RealHeight(0.0f),
-    m_Size(0.0, 0.0),
+    m_Rect(QRectF()),
     m_LoadingStatus(0)
 {
     init(text, size, QFont(family, pointSize, weight, italic), color);
@@ -120,18 +120,18 @@ void Entity3DText::init(const QString &text,
     auto funcExtentChanged = [=]()
     {
         m_LoadingStatus++;
-        auto xExtent = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).x());
-        auto yExtent = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).y());
-
         if(m_LoadingStatus > 1)
         {
             m_LoadingStatus = 0;
-            m_RealWidth = xExtent;
-            m_RealHeight = yExtent;
+
+            m_RealWidth = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).x());
+            m_RealHeight = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).y());
 
             resize(size);
             m_Transform->setRotationX(180.0f);
+
             emit signalLoaded();
+
             QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, nullptr, nullptr);
             QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, nullptr, nullptr);
         }
@@ -157,10 +157,12 @@ void Entity3DText::resize(const QSizeF &size)
                         : static_cast<float>(size.width()) / m_FontMetricWH;
 
     m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
-    m_Size = QSizeF(static_cast<qreal>(m_RealWidth * w_scale), static_cast<qreal>(m_RealHeight * h_scale));
+    m_Rect = QRectF(static_cast<qreal>(m_Transform->translation().x()),
+                    static_cast<qreal>(m_Transform->translation().y()),
+                    static_cast<qreal>(m_RealWidth * w_scale),
+                    static_cast<qreal>(m_RealHeight * h_scale));
 }
 
-QRectF Entity3DText::Box() { return QRectF(m_Transform->translation().toPointF(), m_Size); }
-QSizeF Entity3DText::getSize() const { return m_Size; }
+QRectF Entity3DText::getRect() const { return m_Rect; }
 float Entity3DText::RealWidth() const { return m_RealWidth; }
 float Entity3DText::RealHeight() const { return m_RealHeight; }

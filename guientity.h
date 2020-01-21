@@ -63,8 +63,7 @@ public:
     float RealWidth() const;
     float RealHeight() const;
     void resize(const QSizeF& size);
-    QSizeF getSize() const;
-    QRectF Box();
+    QRectF getRect() const;
 
 private:
     void init(const QString& text,
@@ -74,7 +73,7 @@ private:
     QFont m_Font;
     float m_RealWidth;
     float m_RealHeight;    
-    QSizeF m_Size;
+    QRectF m_Rect;
     int m_LoadingStatus;
     float m_FontMetricWH;
 
