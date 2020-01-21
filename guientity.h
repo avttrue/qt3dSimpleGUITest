@@ -50,23 +50,25 @@ public:
     Entity3DText(Qt3DCore::QEntity *parent,
                  const QString& text,
                  const QSizeF& size,
-                 const QColor &color,
+                 const QColor &color = Qt::white,
                  const QFont& font = QFont("monospace", 20, QFont::Bold));
     float RealWidth() const;
-    float RealHeight() const;
-    void resize(const QSizeF& size);
+    float RealHeight() const;  
     QRectF getRect() const;
 
+protected:
+    void init(const QString& text, const QColor &color);
+
+protected Q_SLOTS:
+    void slotResize();
+
 private:
-    void init(const QString& text,
-              const QSizeF& size,
-              const QColor &color,
-              const QFont& font);
+    QSizeF m_Size;
     QFont m_Font;
-    float m_RealWidth;
-    float m_RealHeight;    
     QRectF m_Rect;
     int m_LoadingStatus;
+    float m_RealWidth;
+    float m_RealHeight;
     float m_FontMetricWH;
 
 Q_SIGNALS:

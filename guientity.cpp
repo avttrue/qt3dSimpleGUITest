@@ -74,31 +74,32 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QColor &color,
                            const QFont &font):
     EntityTransform(parent),
-    m_RealWidth(0.0f),
-    m_RealHeight(0.0f),
+    m_Size(size),
+    m_Font(font),
     m_Rect(QRectF()),
-    m_LoadingStatus(0)
+    m_LoadingStatus(0),
+    m_RealWidth(0.0f),
+    m_RealHeight(0.0f)
 {
-    init(text, size, color, font);
+    setObjectName(QString("Entity3DText:'%1'").arg(text));
+    QFontMetrics fm(m_Font);
+    auto rect = fm.boundingRect(text);
+    m_FontMetricWH = rect.height() == 0 ? 1 : static_cast<float>(rect.width()) / rect.height();
+
+    QObject::connect(this, &Entity3DText::signalLoaded, this, &Entity3DText::slotResize);
+    init(text, color);
 }
 
 void Entity3DText::init(const QString &text,
-                        const QSizeF &size,
-                        const QColor &color,
-                        const QFont &font)
+                        const QColor &color)
 {
-    setObjectName("Entity3DText");
     auto *material = new Qt3DExtras::QGoochMaterial;
     material->setDiffuse(color);
     material->setSpecular(color.lighter());
     auto *mesh = new Qt3DExtras::QExtrudedTextMesh;
-    m_Font = QFont(font);
+
     mesh->setFont(m_Font);
     mesh->setDepth(0.0f);
-
-    QFontMetrics fm(m_Font);
-    auto rect = fm.boundingRect(text);
-    m_FontMetricWH = rect.height() == 0 ? 1 : static_cast<float>(rect.width()) / rect.height();
 
     auto funcExtentChanged = [=]()
     {
@@ -110,9 +111,6 @@ void Entity3DText::init(const QString &text,
             m_RealWidth = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).x());
             m_RealHeight = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).y());
 
-            resize(size);
-            m_Transform->setRotationX(180.0f);
-
             emit signalLoaded();
 
             QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, nullptr, nullptr);
@@ -121,29 +119,33 @@ void Entity3DText::init(const QString &text,
     };
     QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, funcExtentChanged);
     QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, funcExtentChanged);
+
     addComponent(material);
     mesh->setText(text);
     addComponent(mesh);
 }
 
-void Entity3DText::resize(const QSizeF &size)
+void Entity3DText::slotResize()
 {
     if(m_RealWidth <= 0 || m_RealHeight <= 0) {qCritical() << __func__ << ": incorrect real size"; return; }
-    if(size.width() <= 0 && size.height() <= 0) {qCritical() << __func__ << ": incorrect size"; return; }
+    if(m_Size.width() <= 0 && m_Size.height() <= 0) {qCritical() << __func__ << ": incorrect size"; return; }
 
-    float w_scale = size.width() > 0
-                        ? static_cast<float>(size.width()) / m_RealWidth
-                        : static_cast<float>(size.height()) * m_FontMetricWH;
+    float w_scale = m_Size.width() > 0
+                        ? static_cast<float>(m_Size.width()) / m_RealWidth
+                        : static_cast<float>(m_Size.height()) * m_FontMetricWH;
 
-    float h_scale = size.height() > 0
-                        ? static_cast<float>(size.height()) / m_RealHeight
-                        : static_cast<float>(size.width()) / m_FontMetricWH;
+    float h_scale = m_Size.height() > 0
+                        ? static_cast<float>(m_Size.height()) / m_RealHeight
+                        : static_cast<float>(m_Size.width()) / m_FontMetricWH;
 
-    m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
+
     m_Rect = QRectF(static_cast<qreal>(m_Transform->translation().x()),
                     static_cast<qreal>(m_Transform->translation().y()),
                     static_cast<qreal>(m_RealWidth * w_scale),
                     static_cast<qreal>(m_RealHeight * h_scale));
+
+    m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
+    m_Transform->setRotationX(180.0f);
 }
 
 QRectF Entity3DText::getRect() const { return m_Rect; }

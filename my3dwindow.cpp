@@ -109,7 +109,7 @@ void My3DWindow::createScene()
     auto text1 = creatTextEntity("TEST", QSizeF(100, 0), Qt::red);
     text1->Transform()->setTranslation(QVector3D(0.0f, 100.0f, 0.0f));
 
-    auto text2 = creatTextEntity("TEST", QSizeF(0, 20), Qt::red);
+    auto text2 = creatTextEntity("Test", QSizeF(0, 20), Qt::red);
     text2->Transform()->setTranslation(QVector3D(0.0f, 200.0f, 0.0f));
 
     Test1();
