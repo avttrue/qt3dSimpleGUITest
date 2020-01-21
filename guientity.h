@@ -73,9 +73,10 @@ private:
               const QColor &color);
     QFont m_Font;
     float m_RealWidth;
-    float m_RealHeight;
+    float m_RealHeight;    
     QSizeF m_Size;
     int m_LoadingStatus;
+    float m_FontMetricWH;
 
 Q_SIGNALS:
         void signalLoaded();

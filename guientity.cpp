@@ -113,6 +113,10 @@ void Entity3DText::init(const QString &text,
     mesh->setFont(m_Font);
     mesh->setDepth(0.0f);
 
+    QFontMetrics fm(m_Font);
+    auto rect = fm.boundingRect(text);
+    m_FontMetricWH = static_cast<float>(rect.width()) / (rect.height() != 0 ? rect.height() : 1);
+
     auto funcExtentChanged = [=]()
     {
         m_LoadingStatus++;
@@ -126,7 +130,7 @@ void Entity3DText::init(const QString &text,
             m_RealHeight = yExtent;
 
             resize(size);
-
+            m_Transform->setRotationX(180.0f);
             emit signalLoaded();
             QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, nullptr, nullptr);
             QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, nullptr, nullptr);
@@ -134,12 +138,9 @@ void Entity3DText::init(const QString &text,
     };
     QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, funcExtentChanged);
     QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, funcExtentChanged);
-    mesh->setText(text);
-
     addComponent(material);
+    mesh->setText(text);
     addComponent(mesh);
-
-    m_Transform->setRotationX(180.0f);
 }
 
 void Entity3DText::resize(const QSizeF &size)
@@ -149,11 +150,11 @@ void Entity3DText::resize(const QSizeF &size)
 
     float w_scale = size.width() > 0
                         ? static_cast<float>(size.width()) / m_RealWidth
-                        : static_cast<float>(size.height()) * m_RealWidth / m_RealHeight;
+                        : static_cast<float>(size.height()) * m_FontMetricWH;
 
-    float h_scale = size.height()  > 0
+    float h_scale = size.height() > 0
                         ? static_cast<float>(size.height()) / m_RealHeight
-                        : static_cast<float>(size.width()) * m_RealHeight / m_RealWidth;
+                        : static_cast<float>(size.width()) / m_FontMetricWH;
 
     m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
     m_Size = QSizeF(static_cast<qreal>(m_RealWidth * w_scale), static_cast<qreal>(m_RealHeight * h_scale));
