@@ -5,6 +5,9 @@
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/QText2DEntity>
 
+const QColor FONT_COLOR = Qt::white;
+const QFont FONT = QFont("monospace", 30, QFont::Bold);
+
 class EntityTransform : public Qt3DCore::QEntity
 {
     Q_OBJECT
@@ -12,9 +15,16 @@ class EntityTransform : public Qt3DCore::QEntity
 public:
     EntityTransform(Qt3DCore::QEntity *parent);
     Qt3DCore::QTransform *Transform() const;
+    float RealWidth() const;
+    float RealHeight() const;
+    QRectF Rect() const;
 
 protected:
     Qt3DCore::QTransform* m_Transform;
+    QSizeF m_Size;
+    QRectF m_Rect;
+    float m_RealWidth;
+    float m_RealHeight;
 };
 
 class Entity3DText : public EntityTransform
@@ -22,34 +32,31 @@ class Entity3DText : public EntityTransform
     Q_OBJECT
 
 public:
-    Entity3DText(Qt3DCore::QEntity *parent,
-                 const QString& text,
-                 const QSizeF& size,
-                 const QColor &color = Qt::white,
-                 const QFont& font = QFont("monospace", 20, QFont::Bold));
-    float RealWidth() const;
-    float RealHeight() const;  
-    QRectF getRect() const;
+    Entity3DText(Qt3DCore::QEntity *parent, const QSizeF& size, const QFont& font = FONT);
+    void write(const QString& text, const QColor &color = FONT_COLOR);
 
 protected:
-    void init(const QString& text, const QColor &color);
-
-protected Q_SLOTS:
-    void slotResize();
+    void resize();
 
 private:
-    QSizeF m_Size;
     QFont m_Font;
-    QRectF m_Rect;
     int m_LoadingStatus;
-    float m_RealWidth;
-    float m_RealHeight;
     float m_FontMetricWH;
 
 Q_SIGNALS:
-        void signalLoaded();
+        void signalWrited();
 
 };
 
+class EntityButton : public Entity3DText
+{
+    Q_OBJECT
+
+public:
+    EntityButton(Qt3DCore::QEntity *parent,
+                 const QSizeF& size,
+                 const QColor &color,
+                 const QFont& font = FONT);
+};
 
 #endif // GUIENTITY_H

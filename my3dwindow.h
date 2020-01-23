@@ -6,6 +6,7 @@
 #include <Qt3DRender/QLayer>
 
 class Entity3DText;
+class EntityButton;
 
 class My3DWindow : public Qt3DExtras::Qt3DWindow
 {
@@ -17,9 +18,15 @@ public:
     Qt3DRender::QLayer *LayerGui() const;
     Qt3DCore::QEntity *Scene() const;
     void createScene();
-    Entity3DText* creatTextEntity(const QString &text,
-                                  const QSizeF &size,
-                                  const QColor &color);
+    Entity3DText* creatTextGUI(const QString& text,
+                               const QSizeF& size,
+                               const QColor& color,
+                               const QVector3D& position);
+    EntityButton* creatButtonGUI(const QString& text,
+                                 const QSizeF& size,
+                                 const QColor& color,
+                                 const QColor &textColor,
+                                 const QVector3D& position);
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);
