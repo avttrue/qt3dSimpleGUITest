@@ -21,12 +21,12 @@ public:
     Entity3DText* creatTextGUI(const QString& text,
                                const QSizeF& size,
                                const QColor& color,
-                               const QVector3D& position);
+                               const QVector2D &position);
     EntityButton* creatButtonGUI(const QString& text,
                                  const QSizeF& size,
                                  const QColor& color,
                                  const QColor &textColor,
-                                 const QVector3D& position);
+                                 const QVector2D &position);
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);
@@ -41,7 +41,8 @@ private:
     void Test1();
     void Test2();
 
-    Qt3DCore::QTransform* testTransform; // delete
+    Entity3DText* captionText = nullptr; // test
+    Qt3DCore::QTransform* testTransform; // test
     Qt3DCore::QEntity *m_Scene;
     Qt3DRender::QCamera *m_CameraMain;
     Qt3DRender::QCamera *m_CameraGui;

@@ -83,6 +83,9 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
         auto e = static_cast<QMouseEvent*>(event);
         if(!e) { qCritical() << "Mouse Event error"; return true; }
 
+        if(captionText)
+        captionText->slotWrite(QString("X: %1 Y: %2").
+                               arg(QString::number(e->pos().x()), QString::number(e->pos().y())));
         qDebug() << e->pos();
         // если нажали в GUI
         //MouseButtonPressEnabled = false;
@@ -104,11 +107,12 @@ void My3DWindow::createScene()
     if(m_Scene) m_Scene->deleteLater();
     createFramegraph();
     setRootEntity(m_Scene);
+    captionText = creatTextGUI("Caption Text Caption Text Caption Text",
+                               QSizeF(0, 15), Qt::red, QVector2D(0.0f, 15.0f));
 
     // tests
-    creatTextGUI("TEST1", QSizeF(0, 50), Qt::red, QVector3D(0.0f, 100.0f, 0.0f));
-    creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector3D(100.0f, 150.0f, 0.0f));
-    creatButtonGUI("Button1", QSizeF(150, 50), Qt::blue, Qt::white, QVector3D(100.0f, 200.0f, 0.0f));
+    creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));
+    creatButtonGUI("Button1", QSizeF(150, 0), Qt::blue, Qt::white, QVector2D(100.0f, 200.0f));
 
     Test1();
     Test2();
@@ -117,14 +121,14 @@ void My3DWindow::createScene()
 Entity3DText* My3DWindow::creatTextGUI(const QString& text,
                                           const QSizeF& size,
                                           const QColor& color,
-                                          const QVector3D& position)
+                                          const QVector2D& position)
 {
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
     auto entity = new Entity3DText(m_Scene, size);
     entity->addComponent(m_LayerGui);
-    entity->Transform()->setTranslation(position);
-    entity->write(text, color);
+    entity->Transform()->setTranslation(QVector3D(position, 0.0f));
+    entity->slotWrite(text, color);
     return entity;
 }
 
@@ -132,11 +136,11 @@ EntityButton *My3DWindow::creatButtonGUI(const QString &text,
                                          const QSizeF &size,
                                          const QColor &color,
                                          const QColor &textColor,
-                                         const QVector3D &position)
+                                         const QVector2D &position)
 {
     auto entity = new EntityButton(m_Scene, size, color);
-    entity->Transform()->setTranslation(position);
-    entity->write(text, textColor);
+    entity->Transform()->setTranslation(QVector3D(position, 0.0f));
+    entity->slotWrite(text, textColor);
     entity->addComponent(m_LayerGui);
     return entity;
 }
@@ -252,13 +256,13 @@ void My3DWindow::Test2()
     // cube
     auto cube = new Qt3DCore::QEntity(m_Scene);
     auto cubeTransform = new Qt3DCore::QTransform;
-    cubeTransform->setTranslation(QVector3D(50.0f, 150.0f, -0.01f));
+    cubeTransform->setTranslation(QVector3D(175.0f, 275.0f, -0.01f));
     auto cubeMaterial = new Qt3DExtras::QGoochMaterial;
     cubeMaterial->setDiffuse(Qt::green);
     cubeMaterial->setSpecular(QColor(Qt::green).lighter());
     auto cubeMesh = new Qt3DExtras::QCuboidMesh;
-    cubeMesh->setXExtent(100);
-    cubeMesh->setYExtent(100);
+    cubeMesh->setXExtent(150);
+    cubeMesh->setYExtent(150);
     cubeMesh->setZExtent(0);
 
     cube->addComponent(cubeMaterial);

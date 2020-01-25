@@ -1,16 +1,13 @@
 #include "guientity.h"
-#include <QFontMetrics>
-#include <Qt3DExtras/QExtrudedTextMesh>
 #include <Qt3DExtras/QCuboidMesh>
-#include <Qt3DExtras/QDiffuseSpecularMaterial>
 #include <Qt3DRender/QGeometry>
 
 EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     Qt3DCore::QEntity(parent),
     m_Size(QSizeF()),
     m_Rect(QRectF()),
-    m_RealWidth(0.0f),
-    m_RealHeight(0.0f)
+    m_DefaultWidth(0.0f),
+    m_DefaultHeight(0.0f)
 {
     m_Transform = new Qt3DCore::QTransform;
     addComponent(m_Transform);
@@ -20,8 +17,6 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
 
 QRectF EntityTransform::Rect() const { return m_Rect; }
 Qt3DCore::QTransform *EntityTransform::Transform() const { return m_Transform; }
-float EntityTransform::RealWidth() const { return m_RealWidth; }
-float EntityTransform::RealHeight() const { return m_RealHeight; }
 
 Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QSizeF &size,
@@ -33,22 +28,22 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
     setObjectName(QString("Entity3DText"));
     m_Transform->setRotationX(180.0f);
     m_Size = size;
+
+    m_Material = new Qt3DExtras::QDiffuseSpecularMaterial;
+    m_Material->setSpecular(QColor(Qt::white));
+    addComponent(m_Material);
+
+    m_Mesh = new Qt3DExtras::QExtrudedTextMesh;
+    m_Mesh->setFont(m_Font);
+    m_Mesh->setDepth(0.0f);
+    addComponent(m_Mesh);
 }
 
-void Entity3DText::write(const QString &text,
-                         const QColor &color)
+void Entity3DText::slotWrite(const QString &text,
+                             const QColor &color)
 {
-    QFontMetricsF fm(m_Font);
-    m_FontMetricWH = static_cast<float>(fm.horizontalAdvance(text) / fm.height());
-
-    auto *material = new Qt3DExtras::QDiffuseSpecularMaterial;
-    material->setAmbient(color);
-    material->setDiffuse(color.lighter());
-    material->setSpecular(QColor(Qt::white));
-    auto *mesh = new Qt3DExtras::QExtrudedTextMesh;
-
-    mesh->setFont(m_Font);
-    mesh->setDepth(0.0f);
+    m_Material->setAmbient(color);
+    m_Material->setDiffuse(color.lighter());
 
     auto funcExtentChanged = [=]()
     {
@@ -57,53 +52,48 @@ void Entity3DText::write(const QString &text,
         {
             m_LoadingStatus = 0;
 
-            m_RealWidth = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).x());
-            m_RealHeight = abs((mesh->geometry()->maxExtent() - mesh->geometry()->minExtent()).y());
+            m_DefaultWidth = abs((m_Mesh->geometry()->maxExtent() - m_Mesh->geometry()->minExtent()).x());
+            m_DefaultHeight = abs((m_Mesh->geometry()->maxExtent() - m_Mesh->geometry()->minExtent()).y());
 
             resize();
             emit signalWrited();
 
-            QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, nullptr, nullptr);
-            QObject::disconnect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, nullptr, nullptr);
+            QObject::disconnect(m_Mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, nullptr, nullptr);
+            QObject::disconnect(m_Mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, nullptr, nullptr);
         }
     };
-    QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, funcExtentChanged);
-    QObject::connect(mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, funcExtentChanged);
+    QObject::connect(m_Mesh->geometry(), &Qt3DRender::QGeometry::maxExtentChanged, funcExtentChanged);
+    QObject::connect(m_Mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, funcExtentChanged);
 
-    addComponent(material);
-    mesh->setText(text);
-    addComponent(mesh);
+    m_Mesh->setText(text);
 }
 
 void Entity3DText::resize()
 {
-    if(m_RealWidth <= 0 || m_RealHeight <= 0) {qCritical() << __func__ << ": incorrect real size"; return; }
+    if(m_DefaultWidth <= 0 || m_DefaultHeight <= 0) {qCritical() << __func__ << ": incorrect default size"; return; }
     if(m_Size.width() <= 0 && m_Size.height() <= 0) {qCritical() << __func__ << ": incorrect size"; return; }
 
     float w_scale = m_Size.width() > 0
-                        ? static_cast<float>(m_Size.width()) / m_RealWidth
-                        : static_cast<float>(m_Size.height()) * m_FontMetricWH * 0.5f; // TODO: разобраться с QFontMetrics
+                        ? static_cast<float>(m_Size.width()) / m_DefaultWidth
+                        : static_cast<float>(m_Size.height()) / m_DefaultHeight;
 
     float h_scale = m_Size.height() > 0
-                        ? static_cast<float>(m_Size.height()) / m_RealHeight
-                        : static_cast<float>(m_Size.width()) / m_FontMetricWH * 0.5f; //
+                        ? static_cast<float>(m_Size.height()) / m_DefaultHeight
+                        : static_cast<float>(m_Size.width()) / m_DefaultWidth;
 
     m_Transform->setScale3D(QVector3D(w_scale, h_scale, 1.0f));
 
-    m_Size = QSizeF(static_cast<qreal>(m_RealWidth * w_scale),
-                    static_cast<qreal>(m_RealHeight * h_scale));
-
     m_Rect = QRectF(static_cast<qreal>(Transform()->translation().x()),
                     static_cast<qreal>(Transform()->translation().y()),
-                    m_Size.width(),
-                    m_Size.height());
+                    static_cast<qreal>(m_DefaultWidth * w_scale),
+                    static_cast<qreal>(m_DefaultHeight * h_scale));
 }
 
 EntityButton::EntityButton(Qt3DCore::QEntity *parent,
                            const QSizeF &size,
                            const QColor &color,
                            const QFont &font):
-    Entity3DText(parent, QSizeF(size.width() * 0.75, size.height() * 0.5), font)
+    Entity3DText(parent, QSizeF(size.width() * 0.8, size.height() * 0.6), font)
 
 {
     setObjectName(QString("EntityButton"));
@@ -123,23 +113,20 @@ EntityButton::EntityButton(Qt3DCore::QEntity *parent,
     panel->addComponent(meshPanel);
     auto func = [=]()
     {
-        meshPanel->setXExtent(RealWidth() * 1.5f);
-        meshPanel->setYExtent(RealHeight() * 2.0f);
-
-        panel->Transform()->setTranslation(
-            QVector3D(meshPanel->xExtent() / 3.0f,
-                      meshPanel->yExtent() / 4.0f,
-                      0.01f));
-
         m_Transform->setTranslation(
-            QVector3D(Transform()->translation().x() + static_cast<float>(m_Size.width()) * 0.25f,
-                      Transform()->translation().y() - static_cast<float>(m_Size.height()) * 0.5f,
+            QVector3D(Transform()->translation().x() + static_cast<float>(m_Rect.width()) * 0.1f,
+                      Transform()->translation().y() - static_cast<float>(m_Rect.height()) * 0.2f,
                       0.0f));
 
-        m_Rect = QRectF(static_cast<qreal>(m_Rect.x()),
-                        static_cast<qreal>(m_Rect.y()),
-                        m_Rect.width() * 1.5,
-                        m_Rect.height() * 2.0);
+        meshPanel->setXExtent(m_DefaultWidth * 1.2f);
+        meshPanel->setYExtent(m_DefaultHeight * 1.4f);
+
+        panel->Transform()->setTranslation(
+            QVector3D(m_DefaultWidth * 0.5f,
+                      m_DefaultHeight * 0.5f,
+                      0.01f));
+
+        m_Rect = QRectF(m_Rect.x(), m_Rect.y(), m_Rect.width() * 1.2, m_Rect.height() * 1.4);
 
         QObject::disconnect(this, &Entity3DText::signalWrited, nullptr, nullptr);
     };
