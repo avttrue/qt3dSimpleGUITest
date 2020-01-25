@@ -8,7 +8,7 @@
 #include <Qt3DExtras/QExtrudedTextMesh>
 
 const QColor FONT_COLOR = Qt::white;
-const QFont FONT = QFont("monospace", 30, QFont::Bold);
+const QFont FONT = QFont("monospace", 30, QFont::Normal);
 const float PANEL_POSY = 0.01f;
 const float TEXT_POSY = 0.0f;
 const qreal BUTTON_INDENTY = 0.2;
