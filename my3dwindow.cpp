@@ -56,7 +56,7 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
     case QEvent::KeyPress:
     {
         auto e = static_cast<QKeyEvent*>(event);
-        if(!e)  { qCritical() << "Key Event error"; return true; }
+        if(!e) { qCritical() << "Key Event error"; return true; }
 
         if(e->key() == Qt::Key_Space) createScene();
 
@@ -88,6 +88,18 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
         captionText->slotWrite(QString("X: %1 Y: %2").
                                arg(QString::number(e->pos().x()), QString::number(e->pos().y())));
         qDebug() << e->pos();
+
+        for(auto entity: m_GuiList)
+        {
+            auto guiEntity = qobject_cast<Entity3DText*>(entity);
+            if(!guiEntity) continue;
+            if(!guiEntity->isInteractive()) continue;
+
+            auto rect = guiEntity->Rect();
+            rect.moveTop(guiEntity->Rect().y() - guiEntity->Rect().height());
+            if(rect.contains(e->pos())) guiEntity->slotClicked();
+        }
+
         // если нажали в GUI
         //MouseButtonPressEnabled = false;
 
@@ -110,11 +122,13 @@ void My3DWindow::createScene()
     createFramegraph();
     setRootEntity(m_Scene);
     captionText = creatTextGUI("X: - Y: -", QSizeF(0, 15));
+    captionText->Interactive(true);
 
     // tests
-    creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));
-    creatButtonGUI("Button1", QSizeF(150, 0), Qt::blue, Qt::white, QVector2D(100.0f, 200.0f));
-
+    auto text = creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));
+    text->Interactive(true);
+    auto btn = creatButtonGUI("Button1", QSizeF(150, 0), Qt::blue, Qt::white, QVector2D(100.0f, 200.0f));
+    btn->Interactive(true);
     Test1();
     Test2();
 }
@@ -131,7 +145,6 @@ Entity3DText* My3DWindow::creatTextGUI(const QString& text,
 
     auto pos = position;
     if(pos == QVector2D(0.0f, 0.0f)) pos = QVector2D(0.0f, static_cast<float>(size.height()));
-
     entity->Transform()->setTranslation(QVector2D(pos));
     entity->slotWrite(text, color);
     return entity;

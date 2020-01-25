@@ -13,7 +13,7 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     m_Transform = new Qt3DCore::QTransform;
     addComponent(m_Transform);
     QObject::connect(this, &QObject::destroyed,
-                     [=]() { qInfo() << parent->objectName() << ":" << objectName() << "destroyed"; });
+                     [=]() { qDebug() << parent->objectName() << ":" << objectName() << "destroyed"; });
 }
 
 QRectF EntityTransform::Rect() const { return m_Rect; }
@@ -74,6 +74,12 @@ void Entity3DText::slotWrite(const QString &text,
     QObject::connect(m_Mesh->geometry(), &Qt3DRender::QGeometry::minExtentChanged, funcExtentChanged);
 
     m_Mesh->setText(text);
+}
+
+void Entity3DText::slotClicked()
+{
+    // TODO: Entity3DText::slotClicked
+    qDebug() << objectName() << "clicked";
 }
 
 void Entity3DText::resize()

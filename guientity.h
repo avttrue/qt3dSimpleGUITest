@@ -43,6 +43,7 @@ public:
 
 public Q_SLOTS:
     void slotWrite(const QString& text, const QColor &color = FONT_COLOR);
+    void slotClicked();
 
 protected:
     void resize();
