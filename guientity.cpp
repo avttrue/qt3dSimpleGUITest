@@ -1,10 +1,10 @@
 #include "guientity.h"
 #include <Qt3DExtras/QCuboidMesh>
-#include <Qt3DRender/QGeometry>
+
 
 EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     Qt3DCore::QEntity(parent),
-    m_Size(QSizeF()),
+   m_Size(QSizeF()),
     m_Rect(QRectF()),
     m_DefaultWidth(0.0f),
     m_DefaultHeight(0.0f),
@@ -13,7 +13,7 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     m_Transform = new Qt3DCore::QTransform;
     addComponent(m_Transform);
     QObject::connect(this, &QObject::destroyed,
-                     [=]() { qDebug() << parent->objectName() << ":" << objectName() << "destroyed"; });
+                     [=]() { qInfo() << parent->objectName() << ":" << objectName() << "destroyed"; });
 }
 
 QRectF EntityTransform::Rect() const { return m_Rect; }
@@ -140,7 +140,7 @@ EntityButton::EntityButton(Qt3DCore::QEntity *parent,
                         m_Rect.width() * (1.0 + 2 * BUTTON_WINDENT),
                         m_Rect.height() * (1.0 + 2 * BUTTON_HINDENT));
 
-        QObject::disconnect(this, &Entity3DText::signalWrited, this, nullptr);
+        //QObject::disconnect(this, &Entity3DText::signalWrited, this, nullptr);
     };
     QObject::connect(this, &Entity3DText::signalWrited, func);
 }

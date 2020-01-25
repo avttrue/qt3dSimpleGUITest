@@ -31,6 +31,8 @@ public:
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);
+    void addToGuiList(Qt3DCore::QEntity* entity);
+    void removeFromGuiList(Qt3DCore::QEntity* entity);
 
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;
@@ -49,7 +51,8 @@ private:
     Qt3DRender::QCamera *m_CameraGui;
     Qt3DRender::QLayer *m_LayerMain;
     Qt3DRender::QLayer *m_LayerGui;
-    bool m_MouseButtonPressEnabled;
+    QVector<Qt3DCore::QEntity*> m_GuiList;
+    bool m_MouseButtonPressEnabled;    
 };
 
 #endif // MY3DWINDOW_H

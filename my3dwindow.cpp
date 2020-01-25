@@ -34,6 +34,7 @@ My3DWindow::My3DWindow(QScreen *screen):
     m_LayerGui(nullptr),
     m_MouseButtonPressEnabled(true)
 {
+    setObjectName(metaObject()->className());
     setSurfaceType(QSurface::OpenGLSurface);
     installEventFilter(this);
 }
@@ -104,6 +105,7 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
 
 void My3DWindow::createScene()
 {
+    m_GuiList.clear();
     if(m_Scene) m_Scene->deleteLater();
     createFramegraph();
     setRootEntity(m_Scene);
@@ -125,7 +127,7 @@ Entity3DText* My3DWindow::creatTextGUI(const QString& text,
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
     auto entity = new Entity3DText(m_Scene, size);
-    entity->addComponent(m_LayerGui);
+    addToGuiList(entity);
 
     auto pos = position;
     if(pos == QVector2D(0.0f, 0.0f)) pos = QVector2D(0.0f, static_cast<float>(size.height()));
@@ -142,9 +144,9 @@ EntityButton *My3DWindow::creatButtonGUI(const QString &text,
                                          const QVector2D &position)
 {
     auto entity = new EntityButton(m_Scene, size, color);
+    addToGuiList(entity);
     entity->Transform()->setTranslation(QVector2D(position));
     entity->slotWrite(text, textColor);
-    entity->addComponent(m_LayerGui);
     return entity;
 }
 
@@ -272,6 +274,20 @@ void My3DWindow::Test2()
     cube->addComponent(cubeMesh);
     cube->addComponent(cubeTransform);
     cube->addComponent(m_LayerGui);
+}
+
+void My3DWindow::addToGuiList(Qt3DCore::QEntity *entity)
+{
+    entity->addComponent(m_LayerGui);
+    m_GuiList.append(entity);
+    qInfo() << objectName() << "Gui list count:" << m_GuiList.count();
+}
+
+void My3DWindow::removeFromGuiList(Qt3DCore::QEntity *entity)
+{
+    entity->removeComponent(m_LayerGui);
+    m_GuiList.removeAll(entity);
+    qInfo() << objectName() << "Gui list count:" << m_GuiList.count();
 }
 
 void My3DWindow::MouseButtonPressEnabled(bool value) { m_MouseButtonPressEnabled = value; }
