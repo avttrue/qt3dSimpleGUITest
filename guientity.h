@@ -9,10 +9,10 @@
 
 const QColor FONT_COLOR = Qt::white;
 const QFont FONT = QFont("monospace", 30, QFont::Bold);
-const float PANEL_POS = 0.01f;
-const float TEXT_POS = 0.0f;
-const qreal BUTTON_HINDENT = 0.2;
-const qreal BUTTON_WINDENT = 0.1;
+const float PANEL_POSY = 0.01f;
+const float TEXT_POSY = 0.0f;
+const qreal BUTTON_INDENTY = 0.2;
+const qreal BUTTON_INDENTX = 0.1;
 
 class EntityTransform : public Qt3DCore::QEntity
 {
@@ -22,8 +22,6 @@ public:
     EntityTransform(Qt3DCore::QEntity *parent);
     Qt3DCore::QTransform *Transform() const;
     QRectF Rect() const;
-    bool isInteractive() const;
-    void Interactive(bool value);
 
 protected:
     Qt3DCore::QTransform* m_Transform;
@@ -31,7 +29,6 @@ protected:
     QRectF m_Rect;
     float m_DefaultWidth;
     float m_DefaultHeight;
-    bool m_Interactive;
 };
 
 class Entity3DText : public EntityTransform
@@ -40,6 +37,8 @@ class Entity3DText : public EntityTransform
 
 public:
     Entity3DText(Qt3DCore::QEntity *parent, const QSizeF& size, const QFont& font = FONT);
+    bool isInteractive() const;
+    void Interactive(bool value);
 
 public Q_SLOTS:
     void slotWrite(const QString& text, const QColor &color = FONT_COLOR);
@@ -53,9 +52,10 @@ private:
     Qt3DExtras::QExtrudedTextMesh* m_Mesh;
     QFont m_Font;
     int m_LoadingStatus;
+    bool m_Interactive;
 
 Q_SIGNALS:
-        void signalWrited();
+    void signalWrited();
 
 };
 
