@@ -1,6 +1,7 @@
 #ifndef MY3DWINDOW_H
 #define MY3DWINDOW_H
 
+#include <QVector2D>
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/Qt3DWindow>
 #include <Qt3DRender/QLayer>
@@ -20,8 +21,8 @@ public:
     void createScene();
     Entity3DText* creatTextGUI(const QString& text,
                                const QSizeF& size,
-                               const QColor& color,
-                               const QVector2D &position);
+                               const QColor& color = QColor(Qt::white),
+                               const QVector2D &position = QVector2D(0.0f, 0.0f));
     EntityButton* creatButtonGUI(const QString& text,
                                  const QSizeF& size,
                                  const QColor& color,

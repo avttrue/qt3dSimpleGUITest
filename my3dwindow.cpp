@@ -107,8 +107,7 @@ void My3DWindow::createScene()
     if(m_Scene) m_Scene->deleteLater();
     createFramegraph();
     setRootEntity(m_Scene);
-    captionText = creatTextGUI("Caption Text Caption Text Caption Text",
-                               QSizeF(0, 15), Qt::red, QVector2D(0.0f, 15.0f));
+    captionText = creatTextGUI("X: - Y: -", QSizeF(0, 15));
 
     // tests
     creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));
@@ -127,7 +126,11 @@ Entity3DText* My3DWindow::creatTextGUI(const QString& text,
 
     auto entity = new Entity3DText(m_Scene, size);
     entity->addComponent(m_LayerGui);
-    entity->Transform()->setTranslation(QVector3D(position, 0.0f));
+
+    auto pos = position;
+    if(pos == QVector2D(0.0f, 0.0f)) pos = QVector2D(0.0f, static_cast<float>(size.height()));
+
+    entity->Transform()->setTranslation(QVector2D(pos));
     entity->slotWrite(text, color);
     return entity;
 }
@@ -139,7 +142,7 @@ EntityButton *My3DWindow::creatButtonGUI(const QString &text,
                                          const QVector2D &position)
 {
     auto entity = new EntityButton(m_Scene, size, color);
-    entity->Transform()->setTranslation(QVector3D(position, 0.0f));
+    entity->Transform()->setTranslation(QVector2D(position));
     entity->slotWrite(text, textColor);
     entity->addComponent(m_LayerGui);
     return entity;

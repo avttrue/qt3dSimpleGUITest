@@ -7,7 +7,8 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     m_Size(QSizeF()),
     m_Rect(QRectF()),
     m_DefaultWidth(0.0f),
-    m_DefaultHeight(0.0f)
+    m_DefaultHeight(0.0f),
+    m_Interactive(false)
 {
     m_Transform = new Qt3DCore::QTransform;
     addComponent(m_Transform);
@@ -17,6 +18,8 @@ EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
 
 QRectF EntityTransform::Rect() const { return m_Rect; }
 Qt3DCore::QTransform *EntityTransform::Transform() const { return m_Transform; }
+bool EntityTransform::isInteractive() const { return m_Interactive; }
+void EntityTransform::Interactive(bool value) { m_Interactive = value; }
 
 Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QSizeF &size,
@@ -26,8 +29,9 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
     m_LoadingStatus(0)
 {  
     setObjectName(QString("Entity3DText"));
-    m_Transform->setRotationX(180.0f);
     m_Size = size;
+
+    m_Transform->setRotationX(180.0f);
 
     m_Material = new Qt3DExtras::QDiffuseSpecularMaterial;
     m_Material->setSpecular(QColor(Qt::white));
@@ -44,6 +48,10 @@ void Entity3DText::slotWrite(const QString &text,
 {
     m_Material->setAmbient(color);
     m_Material->setDiffuse(color.lighter());
+    m_Transform->setTranslation(
+        QVector3D(Transform()->translation().x(),
+                  Transform()->translation().y(),
+                  TEXT_POS));
 
     auto funcExtentChanged = [=]()
     {
@@ -93,7 +101,8 @@ EntityButton::EntityButton(Qt3DCore::QEntity *parent,
                            const QSizeF &size,
                            const QColor &color,
                            const QFont &font):
-    Entity3DText(parent, QSizeF(size.width() * 0.8, size.height() * 0.6), font)
+    Entity3DText(parent, QSizeF(size.width() * (1.0 - 2 * BUTTON_WINDENT),
+                                size.height() * (1.0 - 2 * BUTTON_HINDENT)), font)
 
 {
     setObjectName(QString("EntityButton"));
@@ -114,21 +123,24 @@ EntityButton::EntityButton(Qt3DCore::QEntity *parent,
     auto func = [=]()
     {
         m_Transform->setTranslation(
-            QVector3D(Transform()->translation().x() + static_cast<float>(m_Rect.width()) * 0.1f,
-                      Transform()->translation().y() - static_cast<float>(m_Rect.height()) * 0.2f,
-                      0.0f));
+            QVector3D(Transform()->translation().x() + static_cast<float>(m_Rect.width() * BUTTON_WINDENT),
+                      Transform()->translation().y() - static_cast<float>(m_Rect.height() * BUTTON_HINDENT),
+                      TEXT_POS));
 
-        meshPanel->setXExtent(m_DefaultWidth * 1.2f);
-        meshPanel->setYExtent(m_DefaultHeight * 1.4f);
+        meshPanel->setXExtent(m_DefaultWidth * static_cast<float>(1.0 + 2 * BUTTON_WINDENT));
+        meshPanel->setYExtent(m_DefaultHeight * static_cast<float>(1.0 + 2 * BUTTON_HINDENT));
 
         panel->Transform()->setTranslation(
             QVector3D(m_DefaultWidth * 0.5f,
                       m_DefaultHeight * 0.5f,
-                      0.01f));
+                      PANEL_POS));
 
-        m_Rect = QRectF(m_Rect.x(), m_Rect.y(), m_Rect.width() * 1.2, m_Rect.height() * 1.4);
+        m_Rect = QRectF(m_Rect.x(),
+                        m_Rect.y(),
+                        m_Rect.width() * (1.0 + 2 * BUTTON_WINDENT),
+                        m_Rect.height() * (1.0 + 2 * BUTTON_HINDENT));
 
-        QObject::disconnect(this, &Entity3DText::signalWrited, nullptr, nullptr);
+        QObject::disconnect(this, &Entity3DText::signalWrited, this, nullptr);
     };
     QObject::connect(this, &Entity3DText::signalWrited, func);
 }
