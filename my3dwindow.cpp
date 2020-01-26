@@ -122,7 +122,6 @@ void My3DWindow::createScene()
     createFramegraph();
     setRootEntity(m_Scene);
     captionText = creatTextGUI("X: - Y: -", QSizeF(0, 15));
-    captionText->Interactive(true);
 
     // tests
     auto text = creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));

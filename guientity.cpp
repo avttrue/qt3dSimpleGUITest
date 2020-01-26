@@ -1,6 +1,7 @@
 #include "guientity.h"
-#include <Qt3DExtras/QCuboidMesh>
 
+#include <QPropertyAnimation>
+#include <Qt3DExtras/QCuboidMesh>
 
 EntityTransform::EntityTransform(Qt3DCore::QEntity *parent):
     Qt3DCore::QEntity(parent),
@@ -24,7 +25,8 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
     EntityTransform(parent),
     m_Font(font),
     m_LoadingStatus(0),
-    m_Interactive(false)
+    m_Interactive(false),
+    m_Animated(false)
 {  
     setObjectName(QString("Entity3DText"));
     m_Size = size;
@@ -76,8 +78,51 @@ void Entity3DText::slotWrite(const QString &text,
 
 void Entity3DText::slotClicked()
 {
-    // TODO: Entity3DText::slotClicked
-    qDebug() << objectName() << "clicked";
+    if(m_Animated) return;
+    m_Animated = true; qInfo() << objectName() << "clicked";
+
+    auto scale = m_Transform->scale3D();
+    auto translation = m_Transform->translation();
+
+    QPropertyAnimation *animationScale = new QPropertyAnimation(m_Transform, "scale3D");
+    animationScale->setDuration(BUTTON_ANIM_TIME);
+    animationScale->setLoopCount(1);
+    animationScale->setStartValue(scale);
+    animationScale->setEndValue(scale - QVector3D(BUTTON_ANIM_INDENT, BUTTON_ANIM_INDENT, 0.0f));
+    auto funcScale = [=]()
+    {
+        animationScale->setStartValue(m_Transform->scale3D());
+        animationScale->setEndValue(scale);
+        animationScale->setLoopCount(1);
+        animationScale->start(QAbstractAnimation::DeleteWhenStopped);
+    };
+    QObject::connect(animationScale, &QPropertyAnimation::finished, funcScale);
+    QObject::connect(animationScale, &QAbstractAnimation::destroyed,
+                     [=](){ qDebug() << objectName() << "scale animation destroyed"; });
+    animationScale->start();
+
+    QPropertyAnimation *animationPos = new QPropertyAnimation(m_Transform, "translation");
+    animationPos->setDuration(BUTTON_ANIM_TIME);
+    animationPos->setLoopCount(1);
+    animationPos->setStartValue(translation);
+    animationPos->setEndValue(translation +
+                              QVector3D(translation.x() * BUTTON_ANIM_INDENT / scale.x() / 2,
+                                        0.0f, 0.0f));
+
+    auto funcPos = [=]()
+    {
+        animationPos->setStartValue(m_Transform->translation());
+        animationPos->setEndValue(translation);
+        animationPos->setLoopCount(1);
+        animationPos->start(QAbstractAnimation::DeleteWhenStopped);
+    };
+    QObject::connect(animationPos, &QAbstractAnimation::finished, funcPos);
+    QObject::connect(animationPos, &QAbstractAnimation::destroyed,
+                     [=]() {
+                         m_Animated = false;
+                         qDebug() << objectName() << "position animation destroyed";
+                         emit signalClicked(); });
+    animationPos->start();
 }
 
 void Entity3DText::resize()
@@ -140,7 +185,7 @@ EntityButton::EntityButton(Qt3DCore::QEntity *parent,
         panel->Transform()->setTranslation(
             QVector3D(m_DefaultWidth * 0.5f,
                       m_DefaultHeight * 0.5f,
-                      PANEL_POSY));
+                      BUTTON_POSY));
 
         m_Rect = QRectF(m_Rect.x(),
                         m_Rect.y(),
