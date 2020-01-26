@@ -51,6 +51,7 @@ Q_SIGNALS:
 
 protected:
     void resize();
+    void animationClick();
 
 private:
     Qt3DExtras::QDiffuseSpecularMaterial* m_Material;
