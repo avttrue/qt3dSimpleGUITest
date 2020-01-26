@@ -82,18 +82,21 @@ void Entity3DText::slotClicked()
     m_Animated = true; qInfo() << objectName() << "clicked";
 
     auto scale = m_Transform->scale3D();
+    auto newscale = scale - QVector3D(BUTTON_ANIM_INDENT, BUTTON_ANIM_INDENT, 0.0f);
     auto translation = m_Transform->translation();
+    auto newtranslation = translation +
+                          QVector3D(m_DefaultWidth * newscale.x() / scale.x() / 2,
+                                    - m_DefaultHeight * newscale.y() / scale.y() / 2, 0.0f);
 
-    QPropertyAnimation *animationScale = new QPropertyAnimation(m_Transform, "scale3D");
+    auto animationScale = new QPropertyAnimation(m_Transform, "scale3D");
     animationScale->setDuration(BUTTON_ANIM_TIME);
     animationScale->setLoopCount(1);
     animationScale->setStartValue(scale);
-    animationScale->setEndValue(scale - QVector3D(BUTTON_ANIM_INDENT, BUTTON_ANIM_INDENT, 0.0f));
+    animationScale->setEndValue(newscale);
     auto funcScale = [=]()
     {
         animationScale->setStartValue(m_Transform->scale3D());
         animationScale->setEndValue(scale);
-        animationScale->setLoopCount(1);
         animationScale->start(QAbstractAnimation::DeleteWhenStopped);
     };
     QObject::connect(animationScale, &QPropertyAnimation::finished, funcScale);
@@ -101,25 +104,21 @@ void Entity3DText::slotClicked()
                      [=](){ qDebug() << objectName() << "scale animation destroyed"; });
     animationScale->start();
 
-    QPropertyAnimation *animationPos = new QPropertyAnimation(m_Transform, "translation");
+    auto animationPos = new QPropertyAnimation(m_Transform, "translation");
     animationPos->setDuration(BUTTON_ANIM_TIME);
     animationPos->setLoopCount(1);
     animationPos->setStartValue(translation);
-    animationPos->setEndValue(translation +
-                              QVector3D(translation.x() * BUTTON_ANIM_INDENT / scale.x() / 2,
-                                        0.0f, 0.0f));
+    animationPos->setEndValue(newtranslation);
 
     auto funcPos = [=]()
     {
         animationPos->setStartValue(m_Transform->translation());
         animationPos->setEndValue(translation);
-        animationPos->setLoopCount(1);
         animationPos->start(QAbstractAnimation::DeleteWhenStopped);
     };
     QObject::connect(animationPos, &QAbstractAnimation::finished, funcPos);
     QObject::connect(animationPos, &QAbstractAnimation::destroyed,
-                     [=]() {
-                         m_Animated = false;
+                     [=]() { m_Animated = false;
                          qDebug() << objectName() << "position animation destroyed";
                          emit signalClicked(); });
     animationPos->start();
