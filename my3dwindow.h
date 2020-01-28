@@ -8,6 +8,7 @@
 
 class Entity3DText;
 class EntityButton;
+enum SizePosFactor: int;
 
 class My3DWindow : public Qt3DExtras::Qt3DWindow
 {
@@ -21,13 +22,9 @@ public:
     void createScene();
     Entity3DText* creatTextGUI(const QString& text,
                                const QSizeF& size,
+                               SizePosFactor spFactor,
                                const QColor& color = QColor(Qt::white),
                                const QVector2D &position = QVector2D(0.0f, 0.0f));
-    EntityButton* creatButtonGUI(const QString& text,
-                                 const QSizeF& size,
-                                 const QColor& color,
-                                 const QColor &textColor,
-                                 const QVector2D &position);
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);

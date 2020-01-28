@@ -85,8 +85,8 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
         if(!e) { qCritical() << "Mouse Event error"; return true; }
 
         if(captionText)
-        captionText->slotWrite(QString("X: %1 Y: %2").
-                               arg(QString::number(e->pos().x()), QString::number(e->pos().y())));
+            captionText->slotWrite(QString("X: %1 Y: %2").
+                                   arg(QString::number(e->pos().x()), QString::number(e->pos().y())));
         qDebug() << e->pos();
 
         for(auto entity: m_GuiList)
@@ -121,44 +121,32 @@ void My3DWindow::createScene()
     if(m_Scene) m_Scene->deleteLater();
     createFramegraph();
     setRootEntity(m_Scene);
-    captionText = creatTextGUI("X: - Y: -", QSizeF(0, 15));
+    captionText = creatTextGUI("X: - Y: -", QSizeF(0.0, 0.02), SizePosFactor::Relative, Qt::white, QVector2D(0.0f, 0.02f));
 
     // tests
-    auto text = creatTextGUI("TEST2", QSizeF(150, 50), Qt::red, QVector2D(100.0f, 150.0f));
-    text->Interactive(true);
-    auto btn = creatButtonGUI("Button1", QSizeF(150, 0), Qt::blue, Qt::white, QVector2D(100.0f, 200.0f));
-    btn->Interactive(true);
+    auto text1 = creatTextGUI("Text1", QSizeF(0.0, 0.03), SizePosFactor::Relative, Qt::red, QVector2D(0.05f, 0.1f));
+    text1->Interactive(true);
+    auto text2 = creatTextGUI("TEXT2", QSizeF(100.0, 0.0), SizePosFactor::Absolute, Qt::red, QVector2D(100.0f, 300.0f));
+    text2->Interactive(true);
     Test1();
     Test2();
 }
 
 Entity3DText* My3DWindow::creatTextGUI(const QString& text,
-                                          const QSizeF& size,
-                                          const QColor& color,
-                                          const QVector2D& position)
+                                       const QSizeF& size,
+                                       SizePosFactor spFactor,
+                                       const QColor& color,
+                                       const QVector2D& position)
 {
     if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
 
-    auto entity = new Entity3DText(m_Scene, size);
+    auto entity = new Entity3DText(m_Scene, size, spFactor);
     addToGuiList(entity);
 
     auto pos = position;
     if(pos == QVector2D(0.0f, 0.0f)) pos = QVector2D(0.0f, static_cast<float>(size.height()));
-    entity->Transform()->setTranslation(QVector2D(pos));
+    entity->Position(QVector2D(pos));
     entity->slotWrite(text, color);
-    return entity;
-}
-
-EntityButton *My3DWindow::creatButtonGUI(const QString &text,
-                                         const QSizeF &size,
-                                         const QColor &color,
-                                         const QColor &textColor,
-                                         const QVector2D &position)
-{
-    auto entity = new EntityButton(m_Scene, size, color);
-    addToGuiList(entity);
-    entity->Transform()->setTranslation(QVector2D(position));
-    entity->slotWrite(text, textColor);
     return entity;
 }
 

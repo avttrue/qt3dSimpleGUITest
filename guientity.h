@@ -2,6 +2,7 @@
 #define GUIENTITY_H
 
 #include <QFont>
+#include <QVector2D>
 #include <Qt3DCore/QEntity>
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/QDiffuseSpecularMaterial>
@@ -9,49 +10,55 @@
 
 const QColor FONT_COLOR = Qt::white;
 const QFont FONT = QFont("monospace", 30, QFont::Normal);
-const float BUTTON_POSY = 0.01f;
+const float PANEL_POSY = 0.01f;
 const float TEXT_POSY = 0.0f;
-const qreal BUTTON_INDENTY = 0.2;
-const qreal BUTTON_INDENTX = 0.1;
 const int BUTTON_ANIM_TIME = 120;
 const float BUTTON_ANIM_INDENT = 1.5f;
 
-class EntityTransform : public Qt3DCore::QEntity
+/*!
+ * \brief SizePosFactor enum - способ задания позиции и размеров:
+ * Absolute - в абсолютных величинах;
+ * Relative - в сотых долях от высоты и ширины окна.
+ */
+enum SizePosFactor: int
 {
-    Q_OBJECT
-
-public:
-    EntityTransform(Qt3DCore::QEntity *parent);
-    Qt3DCore::QTransform *Transform() const;
-    QRectF Rect() const;
-
-protected:
-    Qt3DCore::QTransform* m_Transform;
-    QSizeF m_Size;
-    QRectF m_Rect;
-    float m_DefaultWidth;
-    float m_DefaultHeight;
+    Absolute = 0,
+    Relative
 };
 
-class Entity3DText : public EntityTransform
+class EntityGui : public Qt3DCore::QEntity
 {
     Q_OBJECT
-
 public:
-    Entity3DText(Qt3DCore::QEntity *parent, const QSizeF& size, const QFont& font = FONT);
-    bool isInteractive() const;
-    void Interactive(bool value);
-
-public Q_SLOTS:
-    void slotWrite(const QString& text, const QColor &color = FONT_COLOR);
-    void slotClicked();
-
-Q_SIGNALS:
-    void signalClicked();
+    EntityGui(Qt3DCore::QEntity *parent);
+    QRectF Rect() const;
+    void Position(QVector2D value);
+    void Position(QVector3D value);
 
 protected:
-    void resize();
-    void animationClick();
+    QWindow* m_Window;
+    Qt3DCore::QTransform* m_Transform;
+    QRectF m_Rect;
+    QSizeF m_Size;
+    SizePosFactor m_SizePosFactor;
+    QVector2D m_Position;
+    float m_DefaultWidth;
+    float m_DefaultHeight;
+
+protected Q_SLOTS:
+    void slotResize();
+};
+
+class Entity3DText : public EntityGui
+{
+    Q_OBJECT
+public:
+    Entity3DText(Qt3DCore::QEntity *parent,
+                 const QSizeF& size,
+                 SizePosFactor sizeFactor = SizePosFactor::Absolute,
+                 const QFont& font = FONT);
+    bool isInteractive() const;
+    void Interactive(bool value);  
 
 private:
     Qt3DExtras::QDiffuseSpecularMaterial* m_Material;
@@ -61,20 +68,15 @@ private:
     bool m_Interactive;
     bool m_Animated;
 
+    void animationClick();
+
+public Q_SLOTS:
+    void slotWrite(const QString& text, const QColor &color = FONT_COLOR);
+    void slotClicked();
+
 Q_SIGNALS:
-    void signalWrited();
+    void signalClicked();
 
-};
-
-class EntityButton : public Entity3DText
-{
-    Q_OBJECT
-
-public:
-    EntityButton(Qt3DCore::QEntity *parent,
-                 const QSizeF& size,
-                 const QColor &color,
-                 const QFont& font = FONT);
 };
 
 #endif // GUIENTITY_H
