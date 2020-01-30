@@ -9,9 +9,7 @@ EntityGui::EntityGui(Qt3DCore::QEntity *parent):
     m_Window(nullptr),
     m_Rect(QRectF()),
     m_Size(QSizeF()),
-    m_SizePosFactor(SizePosFactor::Absolute),
-    m_DefaultWidth(0.0f),
-    m_DefaultHeight(0.0f)
+    m_SizePosFactor(SizePosFactor::Absolute)
 {
     for(auto w: QGuiApplication::allWindows())
     {
@@ -35,6 +33,8 @@ Entity3DText::Entity3DText(Qt3DCore::QEntity *parent,
                            const QFont &font):
     EntityGui(parent),
     m_Font(font),
+    m_DefaultWidth(0.0f),
+    m_DefaultHeight(0.0f),
     m_LoadingStatus(0),
     m_Interactive(false),
     m_Animated(false)
@@ -207,7 +207,7 @@ EntityPanel::EntityPanel(Qt3DCore::QEntity *parent,
     material->setSpecular(QColor(Qt::white));
 
     m_Mesh = new Qt3DExtras::QCuboidMesh;
-    m_Mesh->setZExtent(PANEL_POSZ);
+    m_Mesh->setZExtent(0.0f);
 
     addComponent(material);
     addComponent(m_Mesh);
@@ -229,12 +229,12 @@ void EntityPanel::setPosition(QVector2D value)
         m_Transform->setTranslation(QVector3D(m_Window->size().width() * m_Position.x() +
                                                   m_Mesh->xExtent() * 0.5f,
                                               m_Window->size().height() * m_Position.y() +
-                                                  m_Mesh->yExtent() * 0.5f, TEXT_POSZ));
+                                                  m_Mesh->yExtent() * 0.5f, PANEL_POSZ));
     }
     else if(m_SizePosFactor == SizePosFactor::Absolute)
     {
         m_Transform->setTranslation(QVector3D(m_Position.x() + m_Mesh->xExtent() * 0.5f,
-                                              m_Position.y() + m_Mesh->yExtent() * 0.5f, TEXT_POSZ));
+                                              m_Position.y() + m_Mesh->yExtent() * 0.5f, PANEL_POSZ));
     }
 
     m_Rect = QRectF(static_cast<qreal>(m_Transform->translation().x()),

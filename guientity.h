@@ -2,6 +2,7 @@
 #define GUIENTITY_H
 
 #include <QFont>
+#include <QColor>
 #include <QVector2D>
 #include <Qt3DCore/QEntity>
 #include <Qt3DCore/QTransform>
@@ -12,7 +13,7 @@
 const QColor FONT_COLOR = Qt::white;
 const QColor PANEL_COLOR = Qt::darkGray;
 const QFont FONT = QFont("monospace", 30, QFont::Normal);
-const float PANEL_POSZ = 0.01f;
+const float PANEL_POSZ = -0.001f;
 const float TEXT_POSZ = 0.0f;
 const int BUTTON_ANIM_TIME = 100;
 const float BUTTON_ANIM_INDENT = 2.0f;
@@ -42,8 +43,6 @@ protected:
     QSizeF m_Size;
     SizePosFactor m_SizePosFactor;
     QVector2D m_Position;
-    float m_DefaultWidth;
-    float m_DefaultHeight;
 };
 
 class Entity3DText : public EntityGui
@@ -62,6 +61,8 @@ private:
     Qt3DExtras::QDiffuseSpecularMaterial* m_Material;
     Qt3DExtras::QExtrudedTextMesh* m_Mesh;
     QFont m_Font;
+    float m_DefaultWidth;
+    float m_DefaultHeight;
     int m_LoadingStatus;
     bool m_Interactive;
     bool m_Animated;
