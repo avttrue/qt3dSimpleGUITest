@@ -7,13 +7,15 @@
 #include <Qt3DCore/QTransform>
 #include <Qt3DExtras/QDiffuseSpecularMaterial>
 #include <Qt3DExtras/QExtrudedTextMesh>
+#include <Qt3DExtras/QCuboidMesh>
 
 const QColor FONT_COLOR = Qt::white;
+const QColor PANEL_COLOR = Qt::darkGray;
 const QFont FONT = QFont("monospace", 30, QFont::Normal);
-const float PANEL_POSY = 0.01f;
-const float TEXT_POSY = 0.0f;
-const int BUTTON_ANIM_TIME = 120;
-const float BUTTON_ANIM_INDENT = 1.5f;
+const float PANEL_POSZ = 0.01f;
+const float TEXT_POSZ = 0.0f;
+const int BUTTON_ANIM_TIME = 100;
+const float BUTTON_ANIM_INDENT = 2.0f;
 
 /*!
  * \brief SizePosFactor enum - способ задания позиции и размеров:
@@ -32,8 +34,6 @@ class EntityGui : public Qt3DCore::QEntity
 public:
     EntityGui(Qt3DCore::QEntity *parent);
     QRectF Rect() const;
-    void Position(QVector2D value);
-    void Position(QVector3D value);
 
 protected:
     QWindow* m_Window;
@@ -44,9 +44,6 @@ protected:
     QVector2D m_Position;
     float m_DefaultWidth;
     float m_DefaultHeight;
-
-protected Q_SLOTS:
-    void slotResize();
 };
 
 class Entity3DText : public EntityGui
@@ -55,8 +52,9 @@ class Entity3DText : public EntityGui
 public:
     Entity3DText(Qt3DCore::QEntity *parent,
                  const QSizeF& size,
-                 SizePosFactor sizeFactor = SizePosFactor::Absolute,
+                 SizePosFactor sizePosFactor = SizePosFactor::Absolute,
                  const QFont& font = FONT);
+    void setPosition(QVector2D value);
     bool isInteractive() const;
     void Interactive(bool value);  
 
@@ -74,8 +72,29 @@ public Q_SLOTS:
     void slotWrite(const QString& text, const QColor &color = FONT_COLOR);
     void slotClicked();
 
+protected Q_SLOTS:
+    void slotResize();
+
 Q_SIGNALS:
     void signalClicked();
+
+};
+
+class EntityPanel : public EntityGui
+{
+    Q_OBJECT
+public:
+    EntityPanel(Qt3DCore::QEntity *parent,
+                const QSizeF& size,
+                const QColor &color = PANEL_COLOR,
+                SizePosFactor sizePosFactor = SizePosFactor::Absolute);
+    void setPosition(QVector2D value);
+
+private:
+    Qt3DExtras::QCuboidMesh* m_Mesh;
+
+protected Q_SLOTS:
+    void slotResize();
 
 };
 

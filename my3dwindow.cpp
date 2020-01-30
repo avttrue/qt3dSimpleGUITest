@@ -85,7 +85,7 @@ bool My3DWindow::eventFilter(QObject* object, QEvent* event)
         if(!e) { qCritical() << "Mouse Event error"; return true; }
 
         if(captionText)
-            captionText->slotWrite(QString("X: %1 Y: %2").
+            captionText->slotWrite(QString("Click position X: %1 Y: %2").
                                    arg(QString::number(e->pos().x()), QString::number(e->pos().y())));
         qDebug() << e->pos();
 
@@ -121,15 +121,17 @@ void My3DWindow::createScene()
     if(m_Scene) m_Scene->deleteLater();
     createFramegraph();
     setRootEntity(m_Scene);
-    captionText = creatTextGUI("X: - Y: -", QSizeF(0.0, 0.02), SizePosFactor::Relative, Qt::white, QVector2D(0.0f, 0.02f));
+    captionText = creatTextGUI("Click position X: - Y: -", QSizeF(0.0, 0.02), SizePosFactor::Relative, Qt::white, QVector2D(0.0f, 0.0225f));
 
     // tests
-    auto text1 = creatTextGUI("Text1", QSizeF(0.0, 0.03), SizePosFactor::Relative, Qt::red, QVector2D(0.05f, 0.1f));
+    auto text1 = creatTextGUI("Text1", QSizeF(0.13, 0.05), SizePosFactor::Relative, Qt::red, QVector2D(0.01f, 0.1f));
     text1->Interactive(true);
-    auto text2 = creatTextGUI("TEXT2", QSizeF(100.0, 0.0), SizePosFactor::Absolute, Qt::red, QVector2D(100.0f, 300.0f));
+    auto text2 = creatTextGUI("TEXT2", QSizeF(0.13, 0.05), SizePosFactor::Relative, Qt::red, QVector2D(0.01f, 0.2f));
     text2->Interactive(true);
+    createPane(QSizeF(0.0, 0.03), SizePosFactor::Relative, Qt::darkBlue, QVector2D(0.0f, 0.0f));
+    createPane(QSizeF(0.15, 0.0), SizePosFactor::Relative, Qt::darkBlue, QVector2D(0.0f, 0.03f));
+
     Test1();
-    Test2();
 }
 
 Entity3DText* My3DWindow::creatTextGUI(const QString& text,
@@ -145,9 +147,22 @@ Entity3DText* My3DWindow::creatTextGUI(const QString& text,
 
     auto pos = position;
     if(pos == QVector2D(0.0f, 0.0f)) pos = QVector2D(0.0f, static_cast<float>(size.height()));
-    entity->Position(QVector2D(pos));
+    entity->setPosition(QVector2D(pos));
     entity->slotWrite(text, color);
     return entity;
+}
+
+EntityGui *My3DWindow::createPane(const QSizeF &size,
+                                  SizePosFactor spFactor,
+                                  const QColor &color,
+                                  const QVector2D &position)
+{
+   if(!m_Scene) {qCritical() << "Scene is empty"; return nullptr; }
+
+   auto entity = new EntityPanel(m_Scene, size, color, spFactor);
+   addToGuiList(entity);
+   entity->setPosition(QVector2D(position));
+   return entity;
 }
 
 void My3DWindow::createFramegraph()
@@ -247,33 +262,14 @@ void My3DWindow::Test1()
     sphereMesh->setRings(16);
 
     auto spherePicker = new Qt3DRender::QObjectPicker;
-    QObject::connect(spherePicker, &Qt3DRender::QObjectPicker::clicked, [=](){if(m_MouseButtonPressEnabled) qDebug() << "sphere clicked"; });
+    QObject::connect(spherePicker, &Qt3DRender::QObjectPicker::clicked,
+                     [=](){if(m_MouseButtonPressEnabled) qDebug() << "sphere clicked"; });
 
     sphere->addComponent(sphereMaterial);
     sphere->addComponent(sphereMesh);
     sphere->addComponent(testTransform);
     sphere->addComponent(spherePicker);
     sphere->addComponent(m_LayerMain);
-}
-
-void My3DWindow::Test2()
-{
-    // cube
-    auto cube = new Qt3DCore::QEntity(m_Scene);
-    auto cubeTransform = new Qt3DCore::QTransform;
-    cubeTransform->setTranslation(QVector3D(175.0f, 275.0f, -0.01f));
-    auto cubeMaterial = new Qt3DExtras::QGoochMaterial;
-    cubeMaterial->setDiffuse(Qt::green);
-    cubeMaterial->setSpecular(QColor(Qt::green).lighter());
-    auto cubeMesh = new Qt3DExtras::QCuboidMesh;
-    cubeMesh->setXExtent(150);
-    cubeMesh->setYExtent(150);
-    cubeMesh->setZExtent(0);
-
-    cube->addComponent(cubeMaterial);
-    cube->addComponent(cubeMesh);
-    cube->addComponent(cubeTransform);
-    cube->addComponent(m_LayerGui);
 }
 
 void My3DWindow::addToGuiList(Qt3DCore::QEntity *entity)

@@ -7,7 +7,7 @@
 #include <Qt3DRender/QLayer>
 
 class Entity3DText;
-class EntityButton;
+class EntityGui;
 enum SizePosFactor: int;
 
 class My3DWindow : public Qt3DExtras::Qt3DWindow
@@ -25,6 +25,10 @@ public:
                                SizePosFactor spFactor,
                                const QColor& color = QColor(Qt::white),
                                const QVector2D &position = QVector2D(0.0f, 0.0f));
+    EntityGui* createPane(const QSizeF& size,
+                          SizePosFactor spFactor,
+                          const QColor& color = QColor(Qt::white),
+                          const QVector2D &position = QVector2D(0.0f, 0.0f));
 
     bool isMouseButtonPressEnabled() const;
     void MouseButtonPressEnabled(bool value);
@@ -39,7 +43,6 @@ private:
     void setGuiCameraProjection();
     void setMainCameraProjection(int width, int height);
     void Test1();
-    void Test2();
 
     Entity3DText* captionText = nullptr; // test
     Qt3DCore::QTransform* testTransform; // test
